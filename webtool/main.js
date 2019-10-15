@@ -1,5 +1,5 @@
 function main() {
-  const canvas = document.querySelector("#glCanvas");
+  const canvas = document.querySelector(".gl_canvas");
   // Initialize the GL context
   const gl = canvas.getContext("webgl");
 
@@ -11,10 +11,10 @@ function main() {
     return;
   }
 
-  gl.canvas.width = window.innerWidth;
-  gl.canvas.height = window.innerHeight;
+  gl.canvas.width = document.getElementById("canvas").clientWidth;
+  gl.canvas.height = document.getElementById("canvas").clientHeight;
   // Set clear color to black, fully opaque
-  gl.clearColor(0.0, 0.0, 0.0, 1.0);
+  gl.clearColor(0.5, 0.5, 0.5, 3);
   // Clear the color buffer with specified clear color
   gl.clear(gl.COLOR_BUFFER_BIT);
 }
