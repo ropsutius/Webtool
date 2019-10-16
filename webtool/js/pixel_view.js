@@ -33,6 +33,7 @@ let matrix = [
   [1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0],
   [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0]
 ];
+let clicked = false;
 let sides = [matrix.length, matrix[0].length];
 let activeColor = 0x303030;
 let inactiveColor = 0xffffff;
@@ -224,7 +225,7 @@ function onMouseMove(event) {
 
 function zoom(event) {
   var direction = event.deltaY;
-  camFactor += direction * zoomFactor;
+  camFactor -= direction * zoomFactor;
   setCamera();
 }
 
@@ -255,11 +256,16 @@ function setupKeyControls(event) {
 
 window.onload = function() {
   canvas = document.querySelector("#pixel-view");
-  document.querySelector("#pixel-view").onwheel = zoom;
-  // document.querySelector("#pixel-view").ondrag = onMouseMove;
-  window.addEventListener("mousemove", onMouseMove, false);
-  window.addEventListener("click", onMouseClick, false);
-  document.onkeypress = setupKeyControls;
+  canvas.onwheel = zoom;
+  canvas.addEventListener("mousedown", function() {
+    clicked = true;
+  });
+  canvas.addEventListener("mouseup", function() {
+    clicked = false;
+  });
+  canvas.addEventListener("mousemove", onMouseMove, false);
+  canvas.addEventListener("click", onMouseClick, false);
+  window.onkeypress = setupKeyControls;
   window.onresize = onWindowResize;
   init();
   animate();
