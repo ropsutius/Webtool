@@ -109,9 +109,9 @@ body {
 
 /** ---CANVAS--- **/
 
-.webgl_content {
+.webgl-content {
   display: block;
   float: right;
-  width: 100%;
+  width: 50%;
   height: 100%;
 }
