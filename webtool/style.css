@@ -8,6 +8,15 @@ body {
   color: white;
 }
 
+/** ---CANVAS--- **/
+
+.webgl-content {
+  display: block;
+  float: right;
+  width: 50%;
+  height: 100%;
+}
+
 /** ---NAVBAR--- **/
 /* Navbar container */
 .navbar {
@@ -105,13 +114,4 @@ body {
 
 .active {
   background-color: #4caf50; /* Add an active/current color */
-}
-
-/** ---CANVAS--- **/
-
-.webgl-content {
-  display: block;
-  float: right;
-  width: 50%;
-  height: 100%;
 }

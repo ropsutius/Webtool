@@ -1,44 +1,9 @@
 class PixelView {
-  matrix = [
-    [1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1],
-    [0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0],
-    [1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0],
-    [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
-    [1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1],
-    [0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0],
-    [1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0],
-    [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
-    [1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1],
-    [0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0],
-    [1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0],
-    [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
-    [1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1],
-    [0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0],
-    [1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0],
-    [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
-    [1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1],
-    [0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0],
-    [1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0],
-    [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
-    [1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1],
-    [0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0],
-    [1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0],
-    [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
-    [1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1],
-    [0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0],
-    [1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0],
-    [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
-    [1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1],
-    [0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0],
-    [1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0],
-    [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0]
-  ];
   clicked = false;
-  sides = [this.matrix.length, this.matrix[0].length];
   activeColor = 0x303030;
   inactiveColor = 0xffffff;
   lineColor = 0x000000;
-  highlightColor = 0xff0000;
+  highlightColor = 0xfcc4444;
   size = 10;
   camFactor = 10;
   ySpeed = 0.01;
@@ -46,8 +11,11 @@ class PixelView {
   zoomFactor = 0.01;
   cameraOffset = [0, 0, 0, 0];
   sceneMatrix = [];
+  clicked;
 
   constructor(canvas) {
+    this.matrix = matrix;
+    this.sides = [this.matrix.length, this.matrix[0].length];
     this.canvas = canvas;
     this.scene = new THREE.Scene();
     this.camera = new THREE.OrthographicCamera(
@@ -61,29 +29,41 @@ class PixelView {
     this.camera.position.z = 100;
 
     this.renderer = new THREE.WebGLRenderer();
-    this.renderer.setSize(canvas.offsetWidth, canvas.offsetHeight);
+    this.renderer.setSize(this.canvas.offsetWidth, this.canvas.offsetHeight);
     this.renderer.setClearColor(this.inactiveColor, 1);
 
     this.canvas.appendChild(this.renderer.domElement);
 
     this.raycaster = new THREE.Raycaster();
     this.mouse = new THREE.Vector2();
-
-    this.canvas.addEventListener("wheel", this.zoom.bind(this), false);
-    this.canvas.addEventListener("mousedown", function() {
-      this.clicked = true;
-    });
-    this.canvas.addEventListener("mouseup", function() {
-      this.clicked = false;
-    });
     this.canvas.addEventListener(
       "mousemove",
       this.onMouseMove.bind(this),
       false
     );
+    this.canvas.addEventListener(
+      "mousedown",
+      this.onMouseDown.bind(this),
+      false
+    );
     this.canvas.addEventListener("click", this.onMouseClick.bind(this), false);
 
+    this.initControls();
     this.initGrid();
+  }
+
+  initControls() {
+    this.controls = new THREE.OrbitControls(
+      this.camera,
+      this.renderer.domElement
+    );
+    this.controls.enableRotate = false;
+    this.controls.screenSpacePanning = true;
+    this.controls.minZoom = 0.1;
+    this.controls.mouseButtons = {
+      LEFT: THREE.MOUSE.PAN,
+      RIGHT: THREE.MOUSE.ROTATE
+    };
   }
 
   initGrid() {
@@ -180,6 +160,7 @@ class PixelView {
   animate() {
     requestAnimationFrame(this.animate.bind(this));
     this.draw();
+    this.controls.update();
     this.renderer.render(this.scene, this.camera);
   }
 
@@ -239,20 +220,33 @@ class PixelView {
     this.camera.updateProjectionMatrix();
   }
 
+  onMouseDown(event) {
+    this.raycaster.setFromCamera(this.mouse, this.camera);
+    var intersects = this.raycaster.intersectObjects(this.scene.children);
+    for (var i = 0; i < intersects.length; i++) {
+      if (intersects[i].object.type == "Mesh") {
+        this.clicked = intersects[i].object;
+        break;
+      }
+    }
+  }
+
   onMouseClick(event) {
     this.raycaster.setFromCamera(this.mouse, this.camera);
     var intersects = this.raycaster.intersectObjects(this.scene.children);
     for (var i = 0; i < intersects.length; i++) {
       var square = intersects[i].object;
-      if (square.type == "Mesh") {
-        for (var k = 0; k < this.sides[0]; k++) {
-          var index = this.sceneMatrix[k].indexOf(square.id);
-          if (index > -1) {
-            this.flip(k, index);
-            break;
+      if (square == this.clicked) {
+        if (square.type == "Mesh") {
+          for (var k = 0; k < this.sides[0]; k++) {
+            var index = this.sceneMatrix[k].indexOf(square.id);
+            if (index > -1) {
+              this.flip(k, index);
+              break;
+            }
           }
+          break;
         }
-        break;
       }
     }
   }
@@ -266,43 +260,12 @@ class PixelView {
         2 +
       1;
   }
-
-  zoom(event) {
-    var direction = event.deltaY;
-    this.camFactor -= direction * this.zoomFactor;
-    this.setCamera();
-  }
-
-  setupKeyControls(event) {
-    var key = event.keyCode;
-    if (key == 119) {
-      this.cameraOffset[2] += 1;
-      this.cameraOffset[3] += 1;
-      this.setCamera();
-    }
-    if (key == 115) {
-      this.cameraOffset[2] -= 1;
-      this.cameraOffset[3] -= 1;
-      this.setCamera();
-    }
-    if (key == 97) {
-      this.cameraOffset[0] -= 1;
-      this.cameraOffset[1] -= 1;
-      this.setCamera();
-    }
-    if (key == 100) {
-      this.cameraOffset[0] += 1;
-      this.cameraOffset[1] += 1;
-      this.setCamera();
-    }
-  }
 }
 
 window.onload = function() {
   canvasP = document.querySelector("#pixel-view");
   canvas3d = document.getElementById("3d-view");
   pv = new PixelView(canvasP);
-  tv = new ThreeDView(canvas3d);
-  window.onkeypress = pv.setupKeyControls.bind(pv);
+  tv = new ThreeDView(canvas3d, pv);
   window.onresize = pv.onWindowResize.bind(pv);
 };
