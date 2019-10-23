@@ -3,7 +3,8 @@ class ThreeDView {
   weftColor = 0x77cc77;
   highlightColor = 0xcc4444;
   r = 1;
-  accuracyFactor = 50;
+  tubeSegments = 32;
+  radialSegments = 8;
   sceneMatrix = [];
 
   constructor(canvas, pv) {
@@ -105,9 +106,9 @@ class ThreeDView {
         }
         var tube = new THREE.TubeBufferGeometry(
           new THREE.CatmullRomCurve3(curve),
-          1000,
-          1,
-          8,
+          this.tubeSegments,
+          this.r,
+          this.radialSegments,
           false
         );
         var warpMaterial = new THREE.MeshLambertMaterial({
@@ -130,9 +131,9 @@ class ThreeDView {
       ];
       var tube = new THREE.TubeBufferGeometry(
         new THREE.CatmullRomCurve3(curve),
-        1000,
-        1,
-        8,
+        this.tubeSegments,
+        this.r,
+        this.radialSegments,
         false
       );
       var mesh = new THREE.Mesh(tube, weftMaterial);
