@@ -5,38 +5,40 @@
     <script src="js/three.js"></script>
     <script src="js/OrbitControls.js"></script>
     <script src="js/matrix.js"></script>
-    <script src="js/pixel_view.js"></script>
-    <script src="js/3d_view.js"></script>
+    <script src="js/pixelView.js"></script>
+    <script src="js/threeDView.js"></script>
+    <script src="js/main.js"></script>
     <link rel="stylesheet" href="style.css" />
     <title>Webtool</title>
   </head>
   <body>
-    <!--
-      <div class="navbar">
-        <div class="dropdown">
-          <button class="dropbtn">File</button>
-          <div class="dropdown-content">
-            <a href="#">New</a> <a href="#">Open</a> <a href="#">Save</a>
-          </div>
-        </div>
-        <div class="dropdown">
-          <button class="dropbtn">Edit</button>
-          <div class="dropdown-content">
-            <a href="#">Undo</a> <a href="#">Redo</a> <a href="#">Copy</a>
-            <a href="#">Cut</a> <a href="#">Paste</a> <a href="#">Layers</a>
-          </div>
-        </div>
-        <div class="dropdown">
-          <button class="dropbtn">View</button>
-          <div class="dropdown-content">
-            <a href="#">Dual view</a> <a href="#">Pixel view</a>
-            <a href="#">3D view</a>
-          </div>
+    <div class="navbar">
+      <div class="dropdown">
+        <button class="dropbtn">File</button>
+        <div class="dropdown-content">
+          <a href="#">New (N/A)</a> <a href="#">Open (N/A)</a>
+          <a href="#">Save (N/A)</a><a href="#">Export (N/A)</a>
         </div>
       </div>
-      <div class="toolbar"><a href="#">P</a> <a href="#">M</a></div>
-    -->
-    <div id="pixel-view" class="webgl-content"></div>
+      <div class="dropdown">
+        <button class="dropbtn">Edit</button>
+        <div class="dropdown-content">
+          <a href="#">Undo (N/A)</a> <a href="#">Redo (N/A)</a>
+          <a href="#">Copy (N/A)</a> <a href="#">Cut (N/A)</a>
+          <a href="#">Paste (N/A)</a> <a href="#">Layers (N/A)</a>
+        </div>
+      </div>
+      <div class="dropdown">
+        <button class="dropbtn">View</button>
+        <div class="dropdown-content">
+          <a href="#">Dual view (N/A)</a> <a href="#">Pixel view (N/A)</a>
+          <a href="#">3D view (N/A)</a>
+        </div>
+      </div>
+    </div>
+    <div class="toolbar"><a href="#">P</a> <a href="#">M</a></div>
+
     <div id="3d-view" class="webgl-content"></div>
+    <div id="pixel-view" class="webgl-content"></div>
   </body>
 </html>

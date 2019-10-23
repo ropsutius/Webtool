@@ -12,7 +12,7 @@ body {
 
 .webgl-content {
   display: block;
-  float: right;
+  float: left;
   width: 50%;
   height: 100%;
 }

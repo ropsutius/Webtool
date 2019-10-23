@@ -9,6 +9,7 @@ class ThreeDView {
   constructor(canvas, pv) {
     this.matrix = pv.matrix;
     this.sides = pv.sides;
+    this.changed = pv.changed;
     this.canvas = canvas;
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0xffffff);
@@ -42,14 +43,14 @@ class ThreeDView {
       this.camera,
       this.renderer.domElement
     );
-    this.controls.screenSpacePanning = true;
+    // this.controls.screenSpacePanning = true;
     this.controls.minDistance = 50;
     this.controls.maxDistance = 1000;
     this.controls.mouseButtons = {
       LEFT: THREE.MOUSE.PAN,
       RIGHT: THREE.MOUSE.ROTATE
     };
-    this.controls.zoomSpeed = 0.2;
+    this.controls.zoomSpeed = 0.4;
   }
 
   initWeave() {
@@ -57,60 +58,65 @@ class ThreeDView {
     light.position.y = -10;
     this.scene.add(light);
 
-    var warpMaterial = new THREE.MeshLambertMaterial({ color: this.warpColor });
     var weftMaterial = new THREE.MeshLambertMaterial({ color: this.weftColor });
 
     var offsetX = (this.sides[1] * 9) / 2;
     var offsetZ = (this.sides[0] * 19) / 2;
-
+    for (var i = 0; i < this.sides[0]; i++) {
+      this.sceneMatrix[i] = [];
+    }
     var curve;
     for (var i = 0; i < this.sides[1]; i++) {
-      curve = [];
       var elev = 0;
+      var sceneRow = [];
       for (var k = 0; k < this.sides[0]; k++) {
         var x = i * 10 - offsetX;
         var z = k * 19 - offsetZ;
         if (this.matrix[k][i] == 0 && elev == 0) {
-          curve = curve.concat([
+          curve = [
             new THREE.Vector3(x, 0, z),
             new THREE.Vector3(x, 0, 10 + z),
             new THREE.Vector3(x, 0, 20 + z)
-          ]);
+          ];
         } else if (this.matrix[k][i] == 0 && elev == 1) {
-          curve = curve.concat([
+          curve = [
             new THREE.Vector3(x, 4, z),
             new THREE.Vector3(x, 4, 5 + z),
             new THREE.Vector3(x, 2, 10 + z),
             new THREE.Vector3(x, 0, 15 + z),
             new THREE.Vector3(x, 0, 20 + z)
-          ]);
+          ];
           elev = 0;
         } else if (this.matrix[k][i] == 1 && elev == 0) {
-          curve = curve.concat([
+          curve = [
             new THREE.Vector3(x, 0, z),
             new THREE.Vector3(x, 0, 5 + z),
             new THREE.Vector3(x, 2, 10 + z),
             new THREE.Vector3(x, 4, 15 + z),
             new THREE.Vector3(x, 4, 20 + z)
-          ]);
+          ];
           elev = 1;
         } else if (this.matrix[k][i] == 1 && elev == 1) {
-          curve = curve.concat([
+          curve = [
             new THREE.Vector3(x, 4, z),
             new THREE.Vector3(x, 4, 10 + z),
             new THREE.Vector3(x, 4, 20 + z)
-          ]);
+          ];
         }
+        var tube = new THREE.TubeBufferGeometry(
+          new THREE.CatmullRomCurve3(curve),
+          1000,
+          1,
+          8,
+          false
+        );
+        var warpMaterial = new THREE.MeshLambertMaterial({
+          color: this.warpColor
+        });
+        var mesh = new THREE.Mesh(tube, warpMaterial);
+        this.sceneMatrix[k][i] = mesh.id;
+        this.scene.add(mesh);
       }
-      var tube = new THREE.TubeBufferGeometry(
-        new THREE.CatmullRomCurve3(curve),
-        1000,
-        1,
-        8,
-        false
-      );
-      var mesh = new THREE.Mesh(tube, warpMaterial);
-      this.scene.add(mesh);
     }
 
     for (var i = 0; i < this.sides[0]; i++) {
@@ -148,7 +154,16 @@ class ThreeDView {
     this.renderer.render(this.scene, this.camera);
   }
 
-  draw() {}
+  draw() {
+    var x = 1;
+    var y = 1;
+    if (changed3D != null) {
+      this.scene
+        .getObjectById(this.sceneMatrix[changed3D.y][changed3D.x])
+        .material.color.set(0xfffb00);
+      changed3D = null;
+    }
+  }
 
   onWindowResize() {
     this.camera.aspect = this.canvas.offsetWidth / this.canvas.offsetHeight;

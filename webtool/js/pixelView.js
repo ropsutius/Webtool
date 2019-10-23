@@ -1,9 +1,8 @@
 class PixelView {
   clicked = false;
-  activeColor = 0x303030;
-  inactiveColor = 0xffffff;
+  colors = [0xffffff, 0x303030];
   lineColor = 0x000000;
-  highlightColor = 0xfcc4444;
+  highlightColor = 0xcc4444;
   size = 10;
   camFactor = 10;
   ySpeed = 0.01;
@@ -11,7 +10,9 @@ class PixelView {
   zoomFactor = 0.01;
   cameraOffset = [0, 0, 0, 0];
   sceneMatrix = [];
+  changed = null;
   clicked;
+  previous = { y: 0, x: 0 };
 
   constructor(canvas) {
     this.matrix = matrix;
@@ -30,7 +31,7 @@ class PixelView {
 
     this.renderer = new THREE.WebGLRenderer();
     this.renderer.setSize(this.canvas.offsetWidth, this.canvas.offsetHeight);
-    this.renderer.setClearColor(this.inactiveColor, 1);
+    this.renderer.setClearColor(this.colors[0], 1);
 
     this.canvas.appendChild(this.renderer.domElement);
 
@@ -67,35 +68,23 @@ class PixelView {
   }
 
   initGrid() {
-    var lineGridGeometry,
-      boxGeometry,
-      lineBorderGeometry,
-      activeMaterial,
-      inactiveMaterial,
-      lineGridMaterial,
-      lineBorderMaterial;
+    let boxGeometry, boxMaterial;
+    let lineGridGeometry, lineGridMaterial;
+    let lineBorderGeometry, lineBorderMaterial;
 
-    var offsetX = (this.sides[1] * this.size) / 2;
-    var offsetY = (this.sides[0] * this.size) / 2;
+    let offsetX = (this.sides[1] * this.size) / 2;
+    let offsetY = (this.sides[0] * this.size) / 2;
 
-    var cube;
-    for (var i = 0; i < this.sides[0]; i++) {
-      var sceneRow = [];
-      for (var k = 0; k < this.sides[1]; k++) {
+    let cube;
+    for (let i = 0; i < this.sides[0]; i++) {
+      let sceneRow = [];
+      for (let k = 0; k < this.sides[1]; k++) {
         boxGeometry = new THREE.BoxGeometry(this.size, this.size, 1);
-        if (this.matrix[i] == 0) {
-          inactiveMaterial = new THREE.MeshBasicMaterial({
-            color: this.inactiveColor
-          });
-          cube = new THREE.Mesh(boxGeometry, inactiveMaterial);
-          sceneRow[k] = cube.id;
-        } else {
-          activeMaterial = new THREE.MeshBasicMaterial({
-            color: this.activeColor
-          });
-          cube = new THREE.Mesh(boxGeometry, activeMaterial);
-          sceneRow[k] = cube.id;
-        }
+        boxMaterial = new THREE.MeshBasicMaterial({
+          color: this.colors[this.matrix[i][k]]
+        });
+        cube = new THREE.Mesh(boxGeometry, boxMaterial);
+        sceneRow[k] = cube.id;
         cube.position.set(
           k * this.size + this.size / 2 - offsetX,
           -i * this.size - this.size / 2 + offsetY,
@@ -106,8 +95,8 @@ class PixelView {
       this.sceneMatrix[i] = sceneRow;
     }
 
-    var lineGrid;
-    for (var i = 1; i < this.sides[0]; i++) {
+    let lineGrid;
+    for (let i = 1; i < this.sides[0]; i++) {
       lineGridGeometry = new THREE.Geometry();
       lineGridGeometry.vertices.push(new THREE.Vector3(0, 0, 0));
       lineGridGeometry.vertices.push(
@@ -118,7 +107,7 @@ class PixelView {
       lineGrid.position.set(-offsetX, -i * this.size + offsetY, 10);
       this.scene.add(lineGrid);
     }
-    for (var i = 1; i < this.sides[1]; i++) {
+    for (let i = 1; i < this.sides[1]; i++) {
       lineGridGeometry = new THREE.Geometry();
       lineGridGeometry.vertices.push(new THREE.Vector3(0, 0, 0));
       lineGridGeometry.vertices.push(
@@ -150,7 +139,7 @@ class PixelView {
       color: this.lineColor,
       linewidth: 5
     });
-    var lineBorder = new THREE.Line(lineBorderGeometry, lineBorderMaterial);
+    let lineBorder = new THREE.Line(lineBorderGeometry, lineBorderMaterial);
     lineBorder.position.set(-offsetX, offsetY, 10);
     this.scene.add(lineBorder);
 
@@ -165,27 +154,43 @@ class PixelView {
   }
 
   draw() {
-    for (var i = 0; i < this.sides[0]; i++) {
-      for (var k = 0; k < this.sides[1]; k++) {
-        if (this.matrix[i][k] == 1) {
-          this.scene
-            .getObjectById(this.sceneMatrix[i][k])
-            .material.color.set(this.activeColor);
-        } else {
-          this.scene
-            .getObjectById(this.sceneMatrix[i][k])
-            .material.color.set(this.inactiveColor);
-        }
-      }
+    if (changedPixel != null) {
+      this.scene
+        .getObjectById(this.sceneMatrix[changedPixel.y][changedPixel.x])
+        .material.color.set(
+          this.colors[this.matrix[changedPixel.y][changedPixel.x]]
+        );
+      changedPixel = null;
     }
+
+    this.scene
+      .getObjectById(this.sceneMatrix[this.previous.y][this.previous.x])
+      .material.color.set(
+        this.colors[this.matrix[this.previous.y][this.previous.x]]
+      );
+
     this.raycaster.setFromCamera(this.mouse, this.camera);
-    var intersects = this.raycaster.intersectObjects(this.scene.children);
-    for (var i = 0; i < intersects.length; i++) {
+    let intersects = this.raycaster.intersectObjects(this.scene.children);
+    for (let i = 0; i < intersects.length; i++) {
       if (intersects[i].object.type == "Mesh") {
         intersects[i].object.material.color.set(this.highlightColor);
+        this.previous = this.getCoordinatesById(intersects[i].object.id);
         break;
       }
     }
+  }
+
+  getCoordinatesById(id) {
+    for (let i = 0; i < this.sides[0]; i++) {
+      let index = this.sceneMatrix[i].indexOf(id);
+      if (index > -1) {
+        return { y: i, x: index };
+      }
+    }
+  }
+
+  getIdByCoordinates(c) {
+    return this.sceneMatrix[c.y][c.x];
   }
 
   flip(i, k) {
@@ -222,8 +227,8 @@ class PixelView {
 
   onMouseDown(event) {
     this.raycaster.setFromCamera(this.mouse, this.camera);
-    var intersects = this.raycaster.intersectObjects(this.scene.children);
-    for (var i = 0; i < intersects.length; i++) {
+    let intersects = this.raycaster.intersectObjects(this.scene.children);
+    for (let i = 0; i < intersects.length; i++) {
       if (intersects[i].object.type == "Mesh") {
         this.clicked = intersects[i].object;
         break;
@@ -233,18 +238,21 @@ class PixelView {
 
   onMouseClick(event) {
     this.raycaster.setFromCamera(this.mouse, this.camera);
-    var intersects = this.raycaster.intersectObjects(this.scene.children);
-    for (var i = 0; i < intersects.length; i++) {
-      var square = intersects[i].object;
+    let intersects = this.raycaster.intersectObjects(this.scene.children);
+    for (let i = 0; i < intersects.length; i++) {
+      let square = intersects[i].object;
       if (square == this.clicked) {
         if (square.type == "Mesh") {
-          for (var k = 0; k < this.sides[0]; k++) {
-            var index = this.sceneMatrix[k].indexOf(square.id);
+          for (let k = 0; k < this.sides[0]; k++) {
+            let index = this.sceneMatrix[k].indexOf(square.id);
             if (index > -1) {
               this.flip(k, index);
+              changed3D = { y: k, x: index };
+              changedPixel = { y: k, x: index };
               break;
             }
           }
+          this.changed = null;
           break;
         }
       }
@@ -261,11 +269,3 @@ class PixelView {
       1;
   }
 }
-
-window.onload = function() {
-  canvasP = document.querySelector("#pixel-view");
-  canvas3d = document.getElementById("3d-view");
-  pv = new PixelView(canvasP);
-  tv = new ThreeDView(canvas3d, pv);
-  window.onresize = pv.onWindowResize.bind(pv);
-};
