@@ -10,6 +10,7 @@ class PixelView extends View {
 
   constructor(canvas) {
     super(canvas);
+
     this.camera = new THREE.OrthographicCamera(
       this.canvas.offsetWidth / -this.camFactor,
       this.canvas.offsetWidth / this.camFactor,

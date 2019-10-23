@@ -1,19 +1,23 @@
 class View {
   matrix;
   sceneMatrix = [];
-  clearColor = 0xffffff;
+  backgroundColor = 0xf5f5f5;
 
   constructor(canvas) {
     this.matrix = matrix;
     this.sides = [this.matrix.length, this.matrix[0].length];
+
     this.canvas = canvas;
     this.scene = new THREE.Scene();
+    this.scene.background = new THREE.Color(this.backgroundColor);
+
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setSize(this.canvas.offsetWidth, this.canvas.offsetHeight);
-    this.renderer.setClearColor(this.clearColor, 1);
     this.canvas.appendChild(this.renderer.domElement);
+
     this.raycaster = new THREE.Raycaster();
     this.mouse = new THREE.Vector2();
+
     this.canvas.addEventListener(
       "mousemove",
       this.onMouseMove.bind(this),

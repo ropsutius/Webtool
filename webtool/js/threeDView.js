@@ -2,6 +2,10 @@ class ThreeDView extends View {
   warpColor = 0x4444ff;
   weftColor = 0x77cc77;
   highlightColor = 0xcc4444;
+  lightColor = 0x404040;
+  warpLength = 10;
+  weftLength = 10;
+  warpHeight = 4;
   r = 1;
   tubeSegments = 32;
   radialSegments = 8;
@@ -9,8 +13,7 @@ class ThreeDView extends View {
 
   constructor(canvas) {
     super(canvas);
-    this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0xffffff);
+
     this.camera = new THREE.PerspectiveCamera(
       45,
       this.canvas.offsetWidth / this.canvas.offsetHeight,
@@ -27,7 +30,6 @@ class ThreeDView extends View {
       this.camera,
       this.renderer.domElement
     );
-    // this.controls.screenSpacePanning = true;
     this.controls.minDistance = 50;
     this.controls.maxDistance = 1000;
     this.controls.mouseButtons = {
@@ -38,91 +40,117 @@ class ThreeDView extends View {
   }
 
   initWeave() {
-    var light = new THREE.HemisphereLight(0x404040);
+    let light = new THREE.HemisphereLight(this.lightColor);
     light.position.y = -10;
     this.scene.add(light);
 
-    var weftMaterial = new THREE.MeshLambertMaterial({ color: this.weftColor });
+    let offsetX = (this.sides[1] * this.weftLength) / 2;
+    let offsetZ = (this.sides[0] * this.warpLength) / 2;
 
-    var offsetX = (this.sides[1] * 9) / 2;
-    var offsetZ = (this.sides[0] * 19) / 2;
-    for (var i = 0; i < this.sides[0]; i++) {
+    for (let i = 0; i < this.sides[0]; i++) {
       this.sceneMatrix[i] = [];
     }
-    var curve;
-    for (var i = 0; i < this.sides[1]; i++) {
-      var elev = 0;
-      var sceneRow = [];
-      for (var k = 0; k < this.sides[0]; k++) {
-        var x = i * 10 - offsetX;
-        var z = k * 19 - offsetZ;
+
+    let warp = [
+      0,
+      this.warpLength / 4,
+      this.warpLength / 2,
+      (3 * this.warpLength) / 4,
+      this.warpLength
+    ];
+    let warpH = [0, this.warpHeight / 2, this.warpHeight];
+
+    let curve;
+
+    for (let i = 0; i < this.sides[1]; i++) {
+      let elev = 0;
+      let sceneRow = [];
+
+      for (let k = 0; k < this.sides[0]; k++) {
+        let x = i * this.weftLength - offsetX;
+        let z = k * this.warpLength - offsetZ;
+
         if (this.matrix[k][i] == 0 && elev == 0) {
           curve = [
-            new THREE.Vector3(x, 0, z),
-            new THREE.Vector3(x, 0, 10 + z),
-            new THREE.Vector3(x, 0, 20 + z)
+            new THREE.Vector3(x, warpH[0], warp[0] + z),
+            new THREE.Vector3(x, warpH[0], warp[2] + z),
+            new THREE.Vector3(x, warpH[0], warp[4] + z)
           ];
         } else if (this.matrix[k][i] == 0 && elev == 1) {
           curve = [
-            new THREE.Vector3(x, 4, z),
-            new THREE.Vector3(x, 4, 5 + z),
-            new THREE.Vector3(x, 2, 10 + z),
-            new THREE.Vector3(x, 0, 15 + z),
-            new THREE.Vector3(x, 0, 20 + z)
+            new THREE.Vector3(x, warpH[2], warp[0] + z),
+            new THREE.Vector3(x, warpH[2], warp[1] + z),
+            new THREE.Vector3(x, warpH[1], warp[2] + z),
+            new THREE.Vector3(x, warpH[0], warp[3] + z),
+            new THREE.Vector3(x, warpH[0], warp[4] + z)
           ];
           elev = 0;
         } else if (this.matrix[k][i] == 1 && elev == 0) {
           curve = [
-            new THREE.Vector3(x, 0, z),
-            new THREE.Vector3(x, 0, 5 + z),
-            new THREE.Vector3(x, 2, 10 + z),
-            new THREE.Vector3(x, 4, 15 + z),
-            new THREE.Vector3(x, 4, 20 + z)
+            new THREE.Vector3(x, warpH[0], warp[0] + z),
+            new THREE.Vector3(x, warpH[0], warp[1] + z),
+            new THREE.Vector3(x, warpH[1], warp[2] + z),
+            new THREE.Vector3(x, warpH[2], warp[3] + z),
+            new THREE.Vector3(x, warpH[2], warp[4] + z)
           ];
           elev = 1;
         } else if (this.matrix[k][i] == 1 && elev == 1) {
           curve = [
-            new THREE.Vector3(x, 4, z),
-            new THREE.Vector3(x, 4, 10 + z),
-            new THREE.Vector3(x, 4, 20 + z)
+            new THREE.Vector3(x, warpH[2], warp[0] + z),
+            new THREE.Vector3(x, warpH[2], warp[2] + z),
+            new THREE.Vector3(x, warpH[2], warp[4] + z)
           ];
         }
-        var tube = new THREE.TubeBufferGeometry(
+
+        let tube = new THREE.TubeBufferGeometry(
           new THREE.CatmullRomCurve3(curve),
           this.tubeSegments,
           this.r,
           this.radialSegments,
           false
         );
-        var warpMaterial = new THREE.MeshLambertMaterial({
+
+        let warpMaterial = new THREE.MeshLambertMaterial({
           color: this.warpColor
         });
-        var mesh = new THREE.Mesh(tube, warpMaterial);
+
+        let mesh = new THREE.Mesh(tube, warpMaterial);
         this.sceneMatrix[k][i] = mesh.id;
         this.scene.add(mesh);
       }
     }
 
-    for (var i = 0; i < this.sides[0]; i++) {
-      var curve = [
-        new THREE.Vector3(-offsetX - 2, 2, i * 19 + 20 - offsetZ),
+    for (let i = 0; i < this.sides[0]; i++) {
+      let curve = [
         new THREE.Vector3(
-          this.sides[1] * 10 - offsetX,
-          2,
-          i * 19 + 20 - offsetZ
+          -this.r * 2 - offsetX,
+          warpH[1],
+          (i + 1) * this.warpLength - offsetZ
+        ),
+        new THREE.Vector3(
+          (this.sides[1] - 1) * this.weftLength - offsetX + this.r * 2,
+          warpH[1],
+          (i + 1) * this.warpLength - offsetZ
         )
       ];
-      var tube = new THREE.TubeBufferGeometry(
+
+      let tube = new THREE.TubeBufferGeometry(
         new THREE.CatmullRomCurve3(curve),
         this.tubeSegments,
         this.r,
         this.radialSegments,
         false
       );
-      var mesh = new THREE.Mesh(tube, weftMaterial);
+
+      let weftMaterial = new THREE.MeshLambertMaterial({
+        color: this.weftColor
+      });
+
+      let mesh = new THREE.Mesh(tube, weftMaterial);
       this.scene.add(mesh);
     }
-    var axesHelper = new THREE.AxesHelper(5);
+
+    let axesHelper = new THREE.AxesHelper(5);
     axesHelper.translateY(40);
     this.scene.add(axesHelper);
 
@@ -136,8 +164,6 @@ class ThreeDView extends View {
   }
 
   draw() {
-    var x = 1;
-    var y = 1;
     if (changed3D != null) {
       this.scene
         .getObjectById(this.sceneMatrix[changed3D.y][changed3D.x])
