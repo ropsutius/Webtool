@@ -1,24 +1,15 @@
-class PixelView {
+class PixelView extends View {
   clicked = false;
   colors = [0xffffff, 0x303030];
   lineColor = 0x000000;
   highlightColor = 0xcc4444;
   size = 10;
   camFactor = 10;
-  ySpeed = 0.01;
-  xSpeed = 0.01;
-  zoomFactor = 0.01;
-  cameraOffset = [0, 0, 0, 0];
-  sceneMatrix = [];
-  changed = null;
   clicked;
   previous = { y: 0, x: 0 };
 
   constructor(canvas) {
-    this.matrix = matrix;
-    this.sides = [this.matrix.length, this.matrix[0].length];
-    this.canvas = canvas;
-    this.scene = new THREE.Scene();
+    super(canvas);
     this.camera = new THREE.OrthographicCamera(
       this.canvas.offsetWidth / -this.camFactor,
       this.canvas.offsetWidth / this.camFactor,
@@ -29,19 +20,6 @@ class PixelView {
     );
     this.camera.position.z = 100;
 
-    this.renderer = new THREE.WebGLRenderer();
-    this.renderer.setSize(this.canvas.offsetWidth, this.canvas.offsetHeight);
-    this.renderer.setClearColor(this.colors[0], 1);
-
-    this.canvas.appendChild(this.renderer.domElement);
-
-    this.raycaster = new THREE.Raycaster();
-    this.mouse = new THREE.Vector2();
-    this.canvas.addEventListener(
-      "mousemove",
-      this.onMouseMove.bind(this),
-      false
-    );
     this.canvas.addEventListener(
       "mousedown",
       this.onMouseDown.bind(this),
@@ -146,13 +124,6 @@ class PixelView {
     this.animate();
   }
 
-  animate() {
-    requestAnimationFrame(this.animate.bind(this));
-    this.draw();
-    this.controls.update();
-    this.renderer.render(this.scene, this.camera);
-  }
-
   draw() {
     if (changedPixel != null) {
       this.scene
@@ -180,19 +151,6 @@ class PixelView {
     }
   }
 
-  getCoordinatesById(id) {
-    for (let i = 0; i < this.sides[0]; i++) {
-      let index = this.sceneMatrix[i].indexOf(id);
-      if (index > -1) {
-        return { y: i, x: index };
-      }
-    }
-  }
-
-  getIdByCoordinates(c) {
-    return this.sceneMatrix[c.y][c.x];
-  }
-
   flip(i, k) {
     if (i < this.sides[0] && k < this.sides[1]) {
       if (this.matrix[i][k] == 0) {
@@ -201,11 +159,6 @@ class PixelView {
         this.matrix[i][k] = 0;
       }
     }
-  }
-
-  onWindowResize() {
-    this.setCamera();
-    this.renderer.setSize(this.canvas.offsetWidth, this.canvas.offsetHeight);
   }
 
   setCamera() {
@@ -252,20 +205,14 @@ class PixelView {
               break;
             }
           }
-          this.changed = null;
           break;
         }
       }
     }
   }
 
-  onMouseMove(event) {
-    this.mouse.x =
-      ((event.clientX - this.canvas.offsetLeft) / this.canvas.offsetWidth) * 2 -
-      1;
-    this.mouse.y =
-      -((event.clientY - this.canvas.offsetTop) / this.canvas.offsetHeight) *
-        2 +
-      1;
+  onWindowResize() {
+    this.setCamera();
+    this.renderer.setSize(this.canvas.offsetWidth, this.canvas.offsetHeight);
   }
 }

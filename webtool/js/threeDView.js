@@ -1,17 +1,14 @@
-class ThreeDView {
+class ThreeDView extends View {
   warpColor = 0x4444ff;
   weftColor = 0x77cc77;
   highlightColor = 0xcc4444;
   r = 1;
   tubeSegments = 32;
   radialSegments = 8;
-  sceneMatrix = [];
+  initialCameraPos = [0, 40, 100];
 
-  constructor(canvas, pv) {
-    this.matrix = pv.matrix;
-    this.sides = pv.sides;
-    this.changed = pv.changed;
-    this.canvas = canvas;
+  constructor(canvas) {
+    super(canvas);
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0xffffff);
     this.camera = new THREE.PerspectiveCamera(
@@ -19,20 +16,6 @@ class ThreeDView {
       this.canvas.offsetWidth / this.canvas.offsetHeight,
       1,
       10000
-    );
-
-    this.renderer = new THREE.WebGLRenderer({ antialias: true });
-    this.renderer.setSize(this.canvas.offsetWidth, this.canvas.offsetHeight);
-
-    this.canvas.appendChild(this.renderer.domElement);
-
-    this.raycaster = new THREE.Raycaster();
-    this.mouse = new THREE.Vector2();
-
-    this.canvas.addEventListener(
-      "mousemove",
-      this.onMouseMove.bind(this),
-      false
     );
 
     this.initControls();
@@ -143,16 +126,13 @@ class ThreeDView {
     axesHelper.translateY(40);
     this.scene.add(axesHelper);
 
-    this.camera.position.set(0, 40, offsetZ + 100);
+    this.camera.position.set(
+      this.initialCameraPos[0],
+      this.initialCameraPos[1],
+      offsetZ + this.initialCameraPos[2]
+    );
 
     this.animate();
-  }
-
-  animate() {
-    requestAnimationFrame(this.animate.bind(this));
-    this.draw();
-    this.controls.update();
-    this.renderer.render(this.scene, this.camera);
   }
 
   draw() {
@@ -170,15 +150,5 @@ class ThreeDView {
     this.camera.aspect = this.canvas.offsetWidth / this.canvas.offsetHeight;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(this.canvas.offsetWidth, this.canvas.offsetHeight);
-  }
-
-  onMouseMove(event) {
-    this.mouse.x =
-      ((event.clientX - this.canvas.offsetLeft) / this.canvas.offsetWidth) * 2 -
-      1;
-    this.mouse.y =
-      -((event.clientY - this.canvas.offsetTop) / this.canvas.offsetHeight) *
-        2 +
-      1;
   }
 }
