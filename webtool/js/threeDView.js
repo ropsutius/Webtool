@@ -3,9 +3,9 @@ class ThreeDView extends View {
   weftColor = 0x77cc77;
   highlightColor = 0xcc4444;
   lightColor = 0x404040;
-  warpLength = 10;
-  weftLength = 10;
-  warpHeight = 4;
+  warpLength = 4;
+  weftLength = 2;
+  warpHeight = 3;
   warp = [
     0,
     this.warpLength / 4,
@@ -65,39 +65,14 @@ class ThreeDView extends View {
       let sceneRow = [];
 
       for (let k = 0; k < this.sides[0]; k++) {
-        let x = i * this.weftLength - this.offsetX;
-        let z = k * this.warpLength - this.offsetZ;
-
-        if (this.matrix[k][i] == 0 && elev == 0) {
-          curve = [
-            new THREE.Vector3(x, this.warpH[0], this.warp[0] + z),
-            new THREE.Vector3(x, this.warpH[0], this.warp[2] + z),
-            new THREE.Vector3(x, this.warpH[0], this.warp[4] + z)
-          ];
-        } else if (this.matrix[k][i] == 0 && elev == 1) {
-          curve = [
-            new THREE.Vector3(x, this.warpH[2], this.warp[0] + z),
-            new THREE.Vector3(x, this.warpH[2], this.warp[1] + z),
-            new THREE.Vector3(x, this.warpH[1], this.warp[2] + z),
-            new THREE.Vector3(x, this.warpH[0], this.warp[3] + z),
-            new THREE.Vector3(x, this.warpH[0], this.warp[4] + z)
-          ];
-          elev = 0;
-        } else if (this.matrix[k][i] == 1 && elev == 0) {
-          curve = [
-            new THREE.Vector3(x, this.warpH[0], this.warp[0] + z),
-            new THREE.Vector3(x, this.warpH[0], this.warp[1] + z),
-            new THREE.Vector3(x, this.warpH[1], this.warp[2] + z),
-            new THREE.Vector3(x, this.warpH[2], this.warp[3] + z),
-            new THREE.Vector3(x, this.warpH[2], this.warp[4] + z)
-          ];
-          elev = 1;
-        } else if (this.matrix[k][i] == 1 && elev == 1) {
-          curve = [
-            new THREE.Vector3(x, this.warpH[2], this.warp[0] + z),
-            new THREE.Vector3(x, this.warpH[2], this.warp[2] + z),
-            new THREE.Vector3(x, this.warpH[2], this.warp[4] + z)
-          ];
+        this.matrix[k][i];
+        if (k > 0) {
+          curve = this.getWarpPointsByCoordinates(
+            { y: k, x: i },
+            { y: k - 1, x: i }
+          );
+        } else {
+          curve = this.getWarpPointsByCoordinates({ y: k, x: i }, 0);
         }
 
         let tube = new THREE.TubeBufferGeometry(
@@ -169,12 +144,12 @@ class ThreeDView extends View {
 
       let curve;
       if (changed3D.y > 0) {
-        curve = this.getPointsByCoordinates(changed3D, {
+        curve = this.getWarpPointsByCoordinates(changed3D, {
           y: changed3D.y - 1,
           x: changed3D.x
         });
       } else {
-        curve = this.getPointsByCoordinates(changed3D, 0);
+        curve = this.getWarpPointsByCoordinates(changed3D, 0);
       }
 
       curr.geometry.copy(
@@ -192,7 +167,7 @@ class ThreeDView extends View {
         let next = this.scene.getObjectById(
           this.sceneMatrix[changed3D.y + 1][changed3D.x]
         );
-        curve = this.getPointsByCoordinates(
+        curve = this.getWarpPointsByCoordinates(
           { y: changed3D.y + 1, x: changed3D.x },
           changed3D
         );
@@ -213,7 +188,7 @@ class ThreeDView extends View {
     }
   }
 
-  getPointsByCoordinates(curr, prev) {
+  getWarpPointsByCoordinates(curr, prev) {
     let currA, prevA;
     if (typeof curr == "object") {
       currA = this.matrix[curr.y][curr.x];
