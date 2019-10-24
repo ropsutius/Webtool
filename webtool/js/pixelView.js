@@ -7,6 +7,7 @@ class PixelView extends View {
   camFactor = 10;
   clicked;
   previous = { y: 0, x: 0 };
+  cameraOffset = [0, 0, 0, 0];
 
   constructor(canvas) {
     super(canvas);
