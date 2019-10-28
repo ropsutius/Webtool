@@ -14,7 +14,7 @@ body {
   display: block;
   float: left;
   width: 50%;
-  height: 100%;
+  height: calc(100% - 26px);
 }
 
 /** ---NAVBAR--- **/
@@ -92,7 +92,7 @@ body {
 
 .toolbar {
   width: 46px; /* Set a specific width */
-  height: 100%;
+  height: calc(100% - 26px);
   background-color: #555; /* Dark-grey background */
   display: block;
   float: left;
