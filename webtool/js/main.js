@@ -1,11 +1,6 @@
 let changed3D = null;
 let changedPixel = null;
-
-function onWindowResize(list) {
-  for (let i = 0; i < list.length; i++) {
-    list[i].onWindowResize();
-  }
-}
+let pv, tv;
 
 window.onload = function() {
   canvasP = document.querySelector("#pixel-view");

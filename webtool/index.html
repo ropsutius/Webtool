@@ -5,6 +5,7 @@
     <script src="js/three.js"></script>
     <script src="js/OrbitControls.js"></script>
     <script src="js/matrix.js"></script>
+    <script src="js/functions.js"></script>
     <script src="js/view.js"></script>
     <script src="js/pixelView.js"></script>
     <script src="js/threeDView.js"></script>
@@ -32,8 +33,9 @@
       <div class="dropdown">
         <button class="dropbtn">View</button>
         <div class="dropdown-content">
-          <a href="#">Dual view (N/A)</a> <a href="#">Pixel view (N/A)</a>
-          <a href="#">3D view (N/A)</a>
+          <a onclick="toDualView()">Dual view (N/A)</a>
+          <a onclick="toPixelView()">Pixel view (N/A)</a>
+          <a onclick="to3dView()">3D view (N/A)</a>
         </div>
       </div>
     </div>
