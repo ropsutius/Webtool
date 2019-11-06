@@ -3,9 +3,15 @@ class View {
   sceneMatrix = [];
   backgroundColor = 0xf5f5f5;
 
-  constructor(canvas) {
+  constructor(canvas, options) {
     this.matrix = matrix;
     this.sides = [this.matrix.length, this.matrix[0].length];
+
+    if ("Layers" in options) {
+      this.layers = options.Layers;
+    } else {
+      this.layers = 1;
+    }
 
     this.canvas = canvas;
     this.scene = new THREE.Scene();
@@ -41,8 +47,8 @@ class View {
     }
   }
 
-  getIdByCoordinates(c) {
-    return this.sceneMatrix[c.y][c.x];
+  getIdByCoordinates(coords) {
+    return this.sceneMatrix[coords.y][coords.x];
   }
 
   onMouseMove(event) {

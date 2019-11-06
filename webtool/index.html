@@ -2,6 +2,7 @@
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8" />
+    <script src="js/UTIF.js"></script>
     <script src="js/three.js"></script>
     <script src="js/OrbitControls.js"></script>
     <script src="js/matrix.js"></script>
@@ -19,7 +20,7 @@
         <button class="dropbtn">File</button>
         <div class="dropdown-content">
           <a href="#">New (N/A)</a> <a href="#">Open (N/A)</a>
-          <a href="#">Save (N/A)</a><a href="#">Export (N/A)</a>
+          <a href="#">Save (N/A)</a><a onclick="exportTIFF()">Export</a>
         </div>
       </div>
       <div class="dropdown">
@@ -33,9 +34,9 @@
       <div class="dropdown">
         <button class="dropbtn">View</button>
         <div class="dropdown-content">
-          <a onclick="toDualView()">Dual view (N/A)</a>
-          <a onclick="toPixelView()">Pixel view (N/A)</a>
-          <a onclick="to3dView()">3D view (N/A)</a>
+          <a onclick="toDualView()">Dual view</a>
+          <a onclick="toPixelView()">Pixel view</a>
+          <a onclick="to3dView()">3D view</a>
         </div>
       </div>
     </div>

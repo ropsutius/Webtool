@@ -21,8 +21,8 @@ class ThreeDView extends View {
   radialSegments = 8;
   initialCameraPos = [0, 40, 100];
 
-  constructor(canvas) {
-    super(canvas);
+  constructor(canvas, options) {
+    super(canvas, options);
 
     this.camera = new THREE.PerspectiveCamera(
       45,
@@ -32,7 +32,11 @@ class ThreeDView extends View {
     );
 
     this.initControls();
-    this.initWeave();
+    if (this.layers == 1) {
+      this.initSingleWeave();
+    } else if (this.layers == 2) {
+      this.initDoubleWeave();
+    }
   }
 
   initControls() {
@@ -46,10 +50,10 @@ class ThreeDView extends View {
       LEFT: THREE.MOUSE.PAN,
       RIGHT: THREE.MOUSE.ROTATE
     };
-    this.controls.zoomSpeed = 0.4;
+    this.controls.zoomSpeed = 0.6;
   }
 
-  initWeave() {
+  initSingleWeave() {
     let light = new THREE.HemisphereLight(this.lightColor);
     light.position.y = -10;
     this.scene.add(light);
@@ -62,10 +66,92 @@ class ThreeDView extends View {
 
     for (let i = 0; i < this.sides[1]; i++) {
       let elev = 0;
-      let sceneRow = [];
 
       for (let k = 0; k < this.sides[0]; k++) {
-        this.matrix[k][i];
+        if (k > 0) {
+          curve = this.getWarpPointsByCoordinates(
+            { y: k, x: i },
+            { y: k - 1, x: i }
+          );
+        } else {
+          curve = this.getWarpPointsByCoordinates({ y: k, x: i }, 0);
+        }
+
+        let tube = new THREE.TubeBufferGeometry(
+          new THREE.CatmullRomCurve3(curve),
+          this.tubeSegments,
+          this.r,
+          this.radialSegments,
+          false
+        );
+
+        let warpMaterial = new THREE.MeshLambertMaterial({
+          color: this.warpColor
+        });
+
+        let mesh = new THREE.Mesh(tube, warpMaterial);
+        this.sceneMatrix[k][i] = mesh.id;
+        this.scene.add(mesh);
+      }
+    }
+
+    for (let i = 0; i < this.sides[0]; i++) {
+      let curve = [
+        new THREE.Vector3(
+          -this.r * 2 - this.offsetX,
+          this.warpH[1],
+          (i + 1) * this.warpLength - this.offsetZ
+        ),
+        new THREE.Vector3(
+          (this.sides[1] - 1) * this.weftLength - this.offsetX + this.r * 2,
+          this.warpH[1],
+          (i + 1) * this.warpLength - this.offsetZ
+        )
+      ];
+
+      let tube = new THREE.TubeBufferGeometry(
+        new THREE.CatmullRomCurve3(curve),
+        this.tubeSegments,
+        this.r,
+        this.radialSegments,
+        false
+      );
+
+      let weftMaterial = new THREE.MeshLambertMaterial({
+        color: this.weftColor
+      });
+
+      let mesh = new THREE.Mesh(tube, weftMaterial);
+      this.scene.add(mesh);
+    }
+
+    let axesHelper = new THREE.AxesHelper(5);
+    axesHelper.translateY(40);
+    this.scene.add(axesHelper);
+
+    this.camera.position.set(
+      this.initialCameraPos[0],
+      this.initialCameraPos[1],
+      this.offsetZ + this.initialCameraPos[2]
+    );
+
+    this.animate();
+  }
+
+  initDoubleWeave() {
+    let light = new THREE.HemisphereLight(this.lightColor);
+    light.position.y = -10;
+    this.scene.add(light);
+
+    for (let i = 0; i < this.sides[0]; i++) {
+      this.sceneMatrix[i] = [];
+    }
+
+    let curve;
+    for (let i = 0; i < this.sides[1]; i++) {
+      let elev = 0;
+
+      for (let k = 0; k < this.sides[0]; k++) {
         if (k > 0) {
           curve = this.getWarpPointsByCoordinates(
             { y: k, x: i },
@@ -201,18 +287,22 @@ class ThreeDView extends View {
       prevA = prev;
     }
 
-    let curve;
-    let x = curr.x * this.weftLength - this.offsetX;
-    let z = curr.y * this.warpLength - this.offsetZ;
+    if (this.layers == 1) {
+      let x = curr.x * this.weftLength - this.offsetX;
+      let z = curr.y * this.warpLength - this.offsetZ;
+    } else if (this.layers == 2) {
+      let x = curr.x * this.weftLength - this.offsetX;
+      let z = curr.y * this.warpLength - this.offsetZ;
+    }
 
     if (prevA == 0 && currA == 0) {
-      curve = [
+      return [
         new THREE.Vector3(x, this.warpH[0], this.warp[0] + z),
         new THREE.Vector3(x, this.warpH[0], this.warp[2] + z),
         new THREE.Vector3(x, this.warpH[0], this.warp[4] + z)
       ];
     } else if (prevA == 1 && currA == 0) {
-      curve = [
+      return [
         new THREE.Vector3(x, this.warpH[2], this.warp[0] + z),
         new THREE.Vector3(x, this.warpH[2], this.warp[1] + z),
         new THREE.Vector3(x, this.warpH[1], this.warp[2] + z),
@@ -220,7 +310,7 @@ class ThreeDView extends View {
         new THREE.Vector3(x, this.warpH[0], this.warp[4] + z)
       ];
     } else if (prevA == 0 && currA == 1) {
-      curve = [
+      return [
         new THREE.Vector3(x, this.warpH[0], this.warp[0] + z),
         new THREE.Vector3(x, this.warpH[0], this.warp[1] + z),
         new THREE.Vector3(x, this.warpH[1], this.warp[2] + z),
@@ -228,14 +318,12 @@ class ThreeDView extends View {
         new THREE.Vector3(x, this.warpH[2], this.warp[4] + z)
       ];
     } else if (prevA == 1 && currA == 1) {
-      curve = [
+      return [
         new THREE.Vector3(x, this.warpH[2], this.warp[0] + z),
         new THREE.Vector3(x, this.warpH[2], this.warp[2] + z),
         new THREE.Vector3(x, this.warpH[2], this.warp[4] + z)
       ];
     }
-
-    return curve;
   }
 
   onWindowResize() {
