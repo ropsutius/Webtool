@@ -45,10 +45,13 @@ class View {
         return { y: i, x: index };
       }
     }
+    return null;
   }
 
   getIdByCoordinates(coords) {
-    return this.sceneMatrix[coords.y][coords.x];
+    return this.sceneMatrix[coords.y][coords.x] === undefined
+      ? null
+      : this.sceneMatrix[coords.y][coords.x];
   }
 
   onMouseMove(event) {

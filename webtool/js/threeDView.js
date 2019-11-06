@@ -14,15 +14,22 @@ class ThreeDView extends View {
     this.warpLength
   ];
   warpH = [0, this.warpHeight / 2, this.warpHeight];
-  offsetX = (this.sides[1] * this.weftLength) / 2;
-  offsetZ = (this.sides[0] * this.warpLength) / 2;
   r = 1;
   tubeSegments = 32;
   radialSegments = 8;
   initialCameraPos = [0, 40, 100];
+  layerOffset = this.r;
 
   constructor(canvas, options) {
     super(canvas, options);
+
+    if (this.layers == 1) {
+      this.offsetX = (this.sides[1] * this.weftLength) / 2;
+      this.offsetZ = (this.sides[0] * this.warpLength) / 2;
+    } else if (this.layers == 2) {
+      this.offsetX = (this.sides[1] * this.weftLength) / 4;
+      this.offsetZ = (this.sides[0] * this.warpLength) / 4;
+    }
 
     this.camera = new THREE.PerspectiveCamera(
       45,
@@ -31,12 +38,14 @@ class ThreeDView extends View {
       10000
     );
 
+    this.camera.position.set(
+      this.offsetX + this.initialCameraPos[0],
+      this.initialCameraPos[1],
+      this.offsetZ + this.initialCameraPos[2]
+    );
+
     this.initControls();
-    if (this.layers == 1) {
-      this.initSingleWeave();
-    } else if (this.layers == 2) {
-      this.initDoubleWeave();
-    }
+    this.initWeave();
   }
 
   initControls() {
@@ -51,9 +60,10 @@ class ThreeDView extends View {
       RIGHT: THREE.MOUSE.ROTATE
     };
     this.controls.zoomSpeed = 0.6;
+    this.controls.target = new THREE.Vector3(this.offsetX, 0, this.offsetZ);
   }
 
-  initSingleWeave() {
+  initWeave() {
     let light = new THREE.HemisphereLight(this.lightColor);
     light.position.y = -10;
     this.scene.add(light);
@@ -63,19 +73,15 @@ class ThreeDView extends View {
     }
 
     let curve;
-
     for (let i = 0; i < this.sides[1]; i++) {
-      let elev = 0;
-
       for (let k = 0; k < this.sides[0]; k++) {
-        if (k > 0) {
-          curve = this.getWarpPointsByCoordinates(
-            { y: k, x: i },
-            { y: k - 1, x: i }
-          );
-        } else {
-          curve = this.getWarpPointsByCoordinates({ y: k, x: i }, 0);
+        if (
+          ((i % 2 == 0 && k % 2 == 0) || (i % 2 == 1 && k % 2 == 1)) &&
+          this.layers == 2
+        ) {
+          continue;
         }
+        curve = this.getWarpPointsByCoordinates({ y: k, x: i });
 
         let tube = new THREE.TubeBufferGeometry(
           new THREE.CatmullRomCurve3(curve),
@@ -95,20 +101,7 @@ class ThreeDView extends View {
       }
     }
 
-    for (let i = 0; i < this.sides[0]; i++) {
-      let curve = [
-        new THREE.Vector3(
-          -this.r * 2 - this.offsetX,
-          this.warpH[1],
-          (i + 1) * this.warpLength - this.offsetZ
-        ),
-        new THREE.Vector3(
-          (this.sides[1] - 1) * this.weftLength - this.offsetX + this.r * 2,
-          this.warpH[1],
-          (i + 1) * this.warpLength - this.offsetZ
-        )
-      ];
-
+    for (curve of this.weftPoints()) {
       let tube = new THREE.TubeBufferGeometry(
         new THREE.CatmullRomCurve3(curve),
         this.tubeSegments,
@@ -126,100 +119,57 @@ class ThreeDView extends View {
     }
 
     let axesHelper = new THREE.AxesHelper(5);
-    axesHelper.translateY(40);
+    axesHelper.translateY(10);
     this.scene.add(axesHelper);
-
-    this.camera.position.set(
-      this.initialCameraPos[0],
-      this.initialCameraPos[1],
-      this.offsetZ + this.initialCameraPos[2]
-    );
 
     this.animate();
   }
 
-  initDoubleWeave() {
-    let light = new THREE.HemisphereLight(this.lightColor);
-    light.position.y = -10;
-    this.scene.add(light);
-
+  *weftPoints() {
     for (let i = 0; i < this.sides[0]; i++) {
-      this.sceneMatrix[i] = [];
-    }
-
-    let curve;
-    for (let i = 0; i < this.sides[1]; i++) {
-      let elev = 0;
-
-      for (let k = 0; k < this.sides[0]; k++) {
-        if (k > 0) {
-          curve = this.getWarpPointsByCoordinates(
-            { y: k, x: i },
-            { y: k - 1, x: i }
-          );
+      if (this.layers == 1) {
+        yield [
+          new THREE.Vector3(
+            -this.r * 2,
+            this.warpH[1],
+            (i + 1) * this.warpLength
+          ),
+          new THREE.Vector3(
+            (this.sides[1] - 1) * this.weftLength + this.r * 2,
+            this.warpH[1],
+            (i + 1) * this.warpLength
+          )
+        ];
+      } else if (this.layers == 2) {
+        if (i % 2 == 0) {
+          yield [
+            new THREE.Vector3(
+              -this.r * 2,
+              this.warpH[1],
+              (i * this.warpLength) / 2 + this.warpLength
+            ),
+            new THREE.Vector3(
+              ((this.sides[1] - 1) * this.weftLength) / 2 + this.r,
+              this.warpH[1],
+              (i * this.warpLength) / 2 + this.warpLength
+            )
+          ];
         } else {
-          curve = this.getWarpPointsByCoordinates({ y: k, x: i }, 0);
+          yield [
+            new THREE.Vector3(
+              -this.r * 2,
+              -this.warpH[1],
+              ((i - 1) * this.warpLength) / 2 + this.warpLength
+            ),
+            new THREE.Vector3(
+              ((this.sides[1] - 1) * this.weftLength) / 2 + this.r,
+              -this.warpH[1],
+              ((i - 1) * this.warpLength) / 2 + this.warpLength
+            )
+          ];
         }
-
-        let tube = new THREE.TubeBufferGeometry(
-          new THREE.CatmullRomCurve3(curve),
-          this.tubeSegments,
-          this.r,
-          this.radialSegments,
-          false
-        );
-
-        let warpMaterial = new THREE.MeshLambertMaterial({
-          color: this.warpColor
-        });
-
-        let mesh = new THREE.Mesh(tube, warpMaterial);
-        this.sceneMatrix[k][i] = mesh.id;
-        this.scene.add(mesh);
       }
     }
-
-    for (let i = 0; i < this.sides[0]; i++) {
-      let curve = [
-        new THREE.Vector3(
-          -this.r * 2 - this.offsetX,
-          this.warpH[1],
-          (i + 1) * this.warpLength - this.offsetZ
-        ),
-        new THREE.Vector3(
-          (this.sides[1] - 1) * this.weftLength - this.offsetX + this.r * 2,
-          this.warpH[1],
-          (i + 1) * this.warpLength - this.offsetZ
-        )
-      ];
-
-      let tube = new THREE.TubeBufferGeometry(
-        new THREE.CatmullRomCurve3(curve),
-        this.tubeSegments,
-        this.r,
-        this.radialSegments,
-        false
-      );
-
-      let weftMaterial = new THREE.MeshLambertMaterial({
-        color: this.weftColor
-      });
-
-      let mesh = new THREE.Mesh(tube, weftMaterial);
-      this.scene.add(mesh);
-    }
-
-    let axesHelper = new THREE.AxesHelper(5);
-    axesHelper.translateY(40);
-    this.scene.add(axesHelper);
-
-    this.camera.position.set(
-      this.initialCameraPos[0],
-      this.initialCameraPos[1],
-      this.offsetZ + this.initialCameraPos[2]
-    );
-
-    this.animate();
   }
 
   draw() {
@@ -227,38 +177,15 @@ class ThreeDView extends View {
       let curr = this.scene.getObjectById(
         this.sceneMatrix[changed3D.y][changed3D.x]
       );
+      if (curr !== undefined) {
+        let curve;
+        if (changed3D.y > 0) {
+          curve = this.getWarpPointsByCoordinates(changed3D);
+        } else {
+          curve = this.getWarpPointsByCoordinates(changed3D);
+        }
 
-      let curve;
-      if (changed3D.y > 0) {
-        curve = this.getWarpPointsByCoordinates(changed3D, {
-          y: changed3D.y - 1,
-          x: changed3D.x
-        });
-      } else {
-        curve = this.getWarpPointsByCoordinates(changed3D, 0);
-      }
-
-      curr.geometry.copy(
-        new THREE.TubeBufferGeometry(
-          new THREE.CatmullRomCurve3(curve),
-          this.tubeSegments,
-          this.r,
-          this.radialSegments,
-          false
-        )
-      );
-      curr.geometry.needsUpdate = true;
-
-      if (changed3D.y + 1 < this.sides[0]) {
-        let next = this.scene.getObjectById(
-          this.sceneMatrix[changed3D.y + 1][changed3D.x]
-        );
-        curve = this.getWarpPointsByCoordinates(
-          { y: changed3D.y + 1, x: changed3D.x },
-          changed3D
-        );
-
-        next.geometry.copy(
+        curr.geometry.copy(
           new THREE.TubeBufferGeometry(
             new THREE.CatmullRomCurve3(curve),
             this.tubeSegments,
@@ -267,62 +194,125 @@ class ThreeDView extends View {
             false
           )
         );
-        next.geometry.needsUpdate = true;
+        curr.geometry.needsUpdate = true;
+      }
+
+      let next = this.getNextPoint(changed3D);
+      if (next != null) {
+        let nextObject = this.scene.getObjectById(
+          this.getIdByCoordinates(next)
+        );
+        if (nextObject !== undefined) {
+          let curve = this.getWarpPointsByCoordinates(next);
+
+          nextObject.geometry.copy(
+            new THREE.TubeBufferGeometry(
+              new THREE.CatmullRomCurve3(curve),
+              this.tubeSegments,
+              this.r,
+              this.radialSegments,
+              false
+            )
+          );
+          nextObject.geometry.needsUpdate = true;
+        }
       }
 
       changed3D = null;
     }
   }
 
-  getWarpPointsByCoordinates(curr, prev) {
-    let currA, prevA;
+  getWarpPointsByCoordinates(curr) {
+    let currA, prevA, prev;
     if (typeof curr == "object") {
       currA = this.matrix[curr.y][curr.x];
+      prev = this.getPreviousPoint(curr);
+      if (prev != null) {
+        prevA = this.matrix[prev.y][prev.x];
+      } else {
+        prevA = 0;
+      }
     } else {
       currA = curr;
     }
-    if (typeof prev == "object") {
-      prevA = this.matrix[prev.y][prev.x];
-    } else {
-      prevA = prev;
-    }
 
+    let x, y, z;
     if (this.layers == 1) {
-      let x = curr.x * this.weftLength - this.offsetX;
-      let z = curr.y * this.warpLength - this.offsetZ;
+      x = curr.x * this.weftLength;
+      y = 0;
+      z = curr.y * this.warpLength;
     } else if (this.layers == 2) {
-      let x = curr.x * this.weftLength - this.offsetX;
-      let z = curr.y * this.warpLength - this.offsetZ;
+      if (curr.x % 2 == 0 && curr.y % 2 == 1) {
+        x = (curr.x / 2) * this.weftLength;
+        y = 0;
+        z = ((curr.y - 1) / 2) * this.warpLength;
+      } else if (curr.x % 2 == 1 && curr.y % 2 == 0) {
+        x = ((curr.x - 1) / 2) * this.weftLength;
+        y = -this.warpHeight - this.layerOffset;
+        z = (curr.y / 2) * this.warpLength;
+      }
     }
 
     if (prevA == 0 && currA == 0) {
       return [
-        new THREE.Vector3(x, this.warpH[0], this.warp[0] + z),
-        new THREE.Vector3(x, this.warpH[0], this.warp[2] + z),
-        new THREE.Vector3(x, this.warpH[0], this.warp[4] + z)
+        new THREE.Vector3(x, this.warpH[0] + y, this.warp[0] + z),
+        new THREE.Vector3(x, this.warpH[0] + y, this.warp[2] + z),
+        new THREE.Vector3(x, this.warpH[0] + y, this.warp[4] + z)
       ];
     } else if (prevA == 1 && currA == 0) {
       return [
-        new THREE.Vector3(x, this.warpH[2], this.warp[0] + z),
-        new THREE.Vector3(x, this.warpH[2], this.warp[1] + z),
-        new THREE.Vector3(x, this.warpH[1], this.warp[2] + z),
-        new THREE.Vector3(x, this.warpH[0], this.warp[3] + z),
-        new THREE.Vector3(x, this.warpH[0], this.warp[4] + z)
+        new THREE.Vector3(x, this.warpH[2] + y, this.warp[0] + z),
+        new THREE.Vector3(x, this.warpH[2] + y, this.warp[1] + z),
+        new THREE.Vector3(x, this.warpH[1] + y, this.warp[2] + z),
+        new THREE.Vector3(x, this.warpH[0] + y, this.warp[3] + z),
+        new THREE.Vector3(x, this.warpH[0] + y, this.warp[4] + z)
       ];
     } else if (prevA == 0 && currA == 1) {
       return [
-        new THREE.Vector3(x, this.warpH[0], this.warp[0] + z),
-        new THREE.Vector3(x, this.warpH[0], this.warp[1] + z),
-        new THREE.Vector3(x, this.warpH[1], this.warp[2] + z),
-        new THREE.Vector3(x, this.warpH[2], this.warp[3] + z),
-        new THREE.Vector3(x, this.warpH[2], this.warp[4] + z)
+        new THREE.Vector3(x, this.warpH[0] + y, this.warp[0] + z),
+        new THREE.Vector3(x, this.warpH[0] + y, this.warp[1] + z),
+        new THREE.Vector3(x, this.warpH[1] + y, this.warp[2] + z),
+        new THREE.Vector3(x, this.warpH[2] + y, this.warp[3] + z),
+        new THREE.Vector3(x, this.warpH[2] + y, this.warp[4] + z)
       ];
     } else if (prevA == 1 && currA == 1) {
       return [
-        new THREE.Vector3(x, this.warpH[2], this.warp[0] + z),
-        new THREE.Vector3(x, this.warpH[2], this.warp[2] + z),
-        new THREE.Vector3(x, this.warpH[2], this.warp[4] + z)
+        new THREE.Vector3(x, this.warpH[2] + y, this.warp[0] + z),
+        new THREE.Vector3(x, this.warpH[2] + y, this.warp[2] + z),
+        new THREE.Vector3(x, this.warpH[2] + y, this.warp[4] + z)
       ];
+    }
+  }
+
+  getPreviousPoint(curr) {
+    if (this.layers == 1) {
+      if (curr.y == 0) {
+        return null;
+      } else {
+        return { x: curr.x, y: curr.y - 1 };
+      }
+    } else if (this.layers == 2) {
+      if (curr.y == 0 || curr.y == 1) {
+        return null;
+      } else {
+        return { x: curr.x, y: curr.y - 2 };
+      }
+    }
+  }
+
+  getNextPoint(curr) {
+    if (this.layers == 1) {
+      if (curr.y == this.sides[0]) {
+        return null;
+      } else {
+        return { x: curr.x, y: curr.y + 1 };
+      }
+    } else if (this.layers == 2) {
+      if (curr.y == this.sides[0] - 1 || curr.y == this.sides[0] - 2) {
+        return null;
+      } else {
+        return { x: curr.x, y: curr.y + 2 };
+      }
     }
   }
 
