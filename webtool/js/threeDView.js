@@ -53,7 +53,7 @@ class ThreeDView extends View {
       this.camera,
       this.renderer.domElement
     );
-    this.controls.minDistance = 50;
+    this.controls.minDistance = 25;
     this.controls.maxDistance = 1000;
     this.controls.mouseButtons = {
       LEFT: THREE.MOUSE.PAN,
@@ -82,7 +82,6 @@ class ThreeDView extends View {
           continue;
         }
         curve = this.getWarpPointsByCoordinates({ y: k, x: i });
-
         let tube = new THREE.TubeBufferGeometry(
           new THREE.CatmullRomCurve3(curve),
           this.tubeSegments,
@@ -158,12 +157,12 @@ class ThreeDView extends View {
           yield [
             new THREE.Vector3(
               -this.r * 2,
-              -this.warpH[1],
+              (3 / 2) * this.warpHeight,
               ((i - 1) * this.warpLength) / 2 + this.warpLength
             ),
             new THREE.Vector3(
               ((this.sides[1] - 1) * this.weftLength) / 2 + this.r,
-              -this.warpH[1],
+              (3 / 2) * this.warpHeight,
               ((i - 1) * this.warpLength) / 2 + this.warpLength
             )
           ];
@@ -174,28 +173,38 @@ class ThreeDView extends View {
 
   draw() {
     if (changed3D != null) {
+      let curve;
       let curr = this.scene.getObjectById(
         this.sceneMatrix[changed3D.y][changed3D.x]
       );
       if (curr !== undefined) {
-        let curve;
-        if (changed3D.y > 0) {
-          curve = this.getWarpPointsByCoordinates(changed3D);
+        curve = this.getWarpPointsByCoordinates(changed3D);
+      } else {
+        let y;
+        if (changed3D.y % 2 == 0) {
+          y = 1;
         } else {
-          curve = this.getWarpPointsByCoordinates(changed3D);
+          y = -1;
         }
-
-        curr.geometry.copy(
-          new THREE.TubeBufferGeometry(
-            new THREE.CatmullRomCurve3(curve),
-            this.tubeSegments,
-            this.r,
-            this.radialSegments,
-            false
-          )
+        curr = this.scene.getObjectById(
+          this.sceneMatrix[changed3D.y + y][changed3D.x]
         );
-        curr.geometry.needsUpdate = true;
+        curve = this.getWarpPointsByCoordinates({
+          y: changed3D.y + y,
+          x: changed3D.x
+        });
       }
+
+      curr.geometry.copy(
+        new THREE.TubeBufferGeometry(
+          new THREE.CatmullRomCurve3(curve),
+          this.tubeSegments,
+          this.r,
+          this.radialSegments,
+          false
+        )
+      );
+      curr.geometry.needsUpdate = true;
 
       let next = this.getNextPoint(changed3D);
       if (next != null) {
@@ -223,64 +232,63 @@ class ThreeDView extends View {
   }
 
   getWarpPointsByCoordinates(curr) {
-    let currA, prevA, prev;
-    if (typeof curr == "object") {
-      currA = this.matrix[curr.y][curr.x];
-      prev = this.getPreviousPoint(curr);
-      if (prev != null) {
-        prevA = this.matrix[prev.y][prev.x];
-      } else {
-        prevA = 0;
-      }
+    let prevA;
+    let currA = this.getHeight(curr);
+
+    let prev = this.getPreviousPoint(curr);
+    if (prev != null) {
+      prevA = this.getHeight(prev);
     } else {
-      currA = curr;
+      prevA = 0;
     }
 
     let x, y, z;
     if (this.layers == 1) {
       x = curr.x * this.weftLength;
-      y = 0;
       z = curr.y * this.warpLength;
+      if (prevA == currA) {
+        return [
+          new THREE.Vector3(x, this.warpHeight * currA, this.warp[0] + z),
+          new THREE.Vector3(x, this.warpHeight * currA, this.warp[2] + z),
+          new THREE.Vector3(x, this.warpHeight * currA, this.warp[4] + z)
+        ];
+      } else if (prevA != currA) {
+        return [
+          new THREE.Vector3(x, this.warpHeight * prevA, this.warp[0] + z),
+          new THREE.Vector3(x, this.warpHeight * prevA, this.warp[1] + z),
+          new THREE.Vector3(x, this.warpHeight / 2, this.warp[2] + z),
+          new THREE.Vector3(x, this.warpHeight * currA, this.warp[3] + z),
+          new THREE.Vector3(x, this.warpHeight * currA, this.warp[4] + z)
+        ];
+      }
     } else if (this.layers == 2) {
       if (curr.x % 2 == 0 && curr.y % 2 == 1) {
         x = (curr.x / 2) * this.weftLength;
-        y = 0;
         z = ((curr.y - 1) / 2) * this.warpLength;
       } else if (curr.x % 2 == 1 && curr.y % 2 == 0) {
         x = ((curr.x - 1) / 2) * this.weftLength;
-        y = -this.warpHeight - this.layerOffset;
         z = (curr.y / 2) * this.warpLength;
       }
-    }
 
-    if (prevA == 0 && currA == 0) {
-      return [
-        new THREE.Vector3(x, this.warpH[0] + y, this.warp[0] + z),
-        new THREE.Vector3(x, this.warpH[0] + y, this.warp[2] + z),
-        new THREE.Vector3(x, this.warpH[0] + y, this.warp[4] + z)
-      ];
-    } else if (prevA == 1 && currA == 0) {
-      return [
-        new THREE.Vector3(x, this.warpH[2] + y, this.warp[0] + z),
-        new THREE.Vector3(x, this.warpH[2] + y, this.warp[1] + z),
-        new THREE.Vector3(x, this.warpH[1] + y, this.warp[2] + z),
-        new THREE.Vector3(x, this.warpH[0] + y, this.warp[3] + z),
-        new THREE.Vector3(x, this.warpH[0] + y, this.warp[4] + z)
-      ];
-    } else if (prevA == 0 && currA == 1) {
-      return [
-        new THREE.Vector3(x, this.warpH[0] + y, this.warp[0] + z),
-        new THREE.Vector3(x, this.warpH[0] + y, this.warp[1] + z),
-        new THREE.Vector3(x, this.warpH[1] + y, this.warp[2] + z),
-        new THREE.Vector3(x, this.warpH[2] + y, this.warp[3] + z),
-        new THREE.Vector3(x, this.warpH[2] + y, this.warp[4] + z)
-      ];
-    } else if (prevA == 1 && currA == 1) {
-      return [
-        new THREE.Vector3(x, this.warpH[2] + y, this.warp[0] + z),
-        new THREE.Vector3(x, this.warpH[2] + y, this.warp[2] + z),
-        new THREE.Vector3(x, this.warpH[2] + y, this.warp[4] + z)
-      ];
+      if (prevA == currA) {
+        y = this.warpHeight * currA;
+        return [
+          new THREE.Vector3(x, y, this.warp[0] + z),
+          new THREE.Vector3(x, y, this.warp[2] + z),
+          new THREE.Vector3(x, y, this.warp[4] + z)
+        ];
+      } else if (prevA != currA) {
+        let prevY = this.warpHeight * prevA;
+        let currY = this.warpHeight * currA;
+        let midY = Math.abs(currY - prevY) / 2 + Math.min(prevY, currY);
+        return [
+          new THREE.Vector3(x, prevY, this.warp[0] + z),
+          new THREE.Vector3(x, prevY, this.warp[1] + z),
+          new THREE.Vector3(x, midY, this.warp[2] + z),
+          new THREE.Vector3(x, currY, this.warp[3] + z),
+          new THREE.Vector3(x, currY, this.warp[4] + z)
+        ];
+      }
     }
   }
 
@@ -312,6 +320,35 @@ class ThreeDView extends View {
         return null;
       } else {
         return { x: curr.x, y: curr.y + 2 };
+      }
+    }
+  }
+
+  getHeight(curr) {
+    let currA = this.matrix[curr.y][curr.x];
+    if (this.layers == 1) {
+      return currA;
+    } else if (this.layers == 2) {
+      if (curr.y % 2 == 0) {
+        let nextA = this.matrix[curr.y + 1][curr.x];
+        if (currA == 0 && nextA == 0) {
+          return 0;
+        } else if (currA == 1 && nextA == 0) {
+          return 1;
+        } else if (currA == 1 && nextA == 1) {
+          return 2;
+        } else return null;
+      } else {
+        let prevA = this.matrix[curr.y - 1][curr.x];
+        if (currA == 0 && prevA == 0) {
+          return 0;
+        } else if (currA == 0 && prevA == 1) {
+          return 1;
+        } else if (currA == 1 && prevA == 1) {
+          return 2;
+        } else {
+          return null;
+        }
       }
     }
   }

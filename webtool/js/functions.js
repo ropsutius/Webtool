@@ -1,7 +1,7 @@
 let changed3D = null;
 let changedPixel = null;
 let pv, tv, canvasP, canvas3d;
-let layerCount = 1;
+let layerCount = 2;
 
 function to3dView() {
   document.getElementById("pixel-view").style.display = "none";
