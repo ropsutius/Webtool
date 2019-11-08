@@ -177,22 +177,13 @@ class ThreeDView extends View {
       let curr = this.scene.getObjectById(
         this.sceneMatrix[changed3D.y][changed3D.x]
       );
+
       if (curr !== undefined) {
         curve = this.getWarpPointsByCoordinates(changed3D);
       } else {
-        let y;
-        if (changed3D.y % 2 == 0) {
-          y = 1;
-        } else {
-          y = -1;
-        }
-        curr = this.scene.getObjectById(
-          this.sceneMatrix[changed3D.y + y][changed3D.x]
-        );
-        curve = this.getWarpPointsByCoordinates({
-          y: changed3D.y + y,
-          x: changed3D.x
-        });
+        changed3D = this.getPairPoint(changed3D);
+        curr = this.scene.getObjectById(this.getIdByCoordinates(changed3D));
+        curve = this.getWarpPointsByCoordinates(changed3D);
       }
 
       curr.geometry.copy(
@@ -212,19 +203,23 @@ class ThreeDView extends View {
           this.getIdByCoordinates(next)
         );
         if (nextObject !== undefined) {
-          let curve = this.getWarpPointsByCoordinates(next);
-
-          nextObject.geometry.copy(
-            new THREE.TubeBufferGeometry(
-              new THREE.CatmullRomCurve3(curve),
-              this.tubeSegments,
-              this.r,
-              this.radialSegments,
-              false
-            )
-          );
-          nextObject.geometry.needsUpdate = true;
+          curve = this.getWarpPointsByCoordinates(next);
+        } else {
+          next = this.getPairPoint(next);
+          nextObject = this.scene.getObjectById(this.getIdByCoordinates(next));
+          curve = this.getWarpPointsByCoordinates(next);
         }
+
+        nextObject.geometry.copy(
+          new THREE.TubeBufferGeometry(
+            new THREE.CatmullRomCurve3(curve),
+            this.tubeSegments,
+            this.r,
+            this.radialSegments,
+            false
+          )
+        );
+        nextObject.geometry.needsUpdate = true;
       }
 
       changed3D = null;
@@ -321,6 +316,14 @@ class ThreeDView extends View {
       } else {
         return { x: curr.x, y: curr.y + 2 };
       }
+    }
+  }
+
+  getPairPoint(curr) {
+    if (curr.y % 2 == 0) {
+      return { x: curr.x, y: curr.y + 1 };
+    } else {
+      return { x: curr.x, y: curr.y - 1 };
     }
   }
 
