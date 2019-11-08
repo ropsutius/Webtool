@@ -9,6 +9,7 @@ class PixelView extends View {
   ];
   lineColor = 0x000000;
   highlightColor = 0xcc4444;
+  lineWidth = 1;
   size = 10;
   camFactor = 3;
   clicked;
@@ -64,104 +65,95 @@ class PixelView extends View {
     for (let i = 0; i < this.sides[0]; i++) {
       let sceneRow = [];
       for (let k = 0; k < this.sides[1]; k++) {
-        boxGeometry = new THREE.BoxGeometry(this.size, this.size, 1);
-        if (this.layers == 1) {
-          boxMaterial = new THREE.MeshBasicMaterial({
-            color: this.singleColors[this.matrix[i][k]]
-          });
-        } else if (this.layers == 2) {
-          if (k % 2 == 0 && i % 2 == 0) {
-            boxMaterial = new THREE.MeshBasicMaterial({
-              color: this.doubleColors[0][this.matrix[i][k]]
-            });
-          } else if (k % 2 == 1 && i % 2 == 0) {
-            boxMaterial = new THREE.MeshBasicMaterial({
-              color: this.doubleColors[1][this.matrix[i][k]]
-            });
-          } else if (k % 2 == 0 && i % 2 == 1) {
-            boxMaterial = new THREE.MeshBasicMaterial({
-              color: this.doubleColors[2][this.matrix[i][k]]
-            });
-          } else if (k % 2 == 1 && i % 2 == 1) {
-            boxMaterial = new THREE.MeshBasicMaterial({
-              color: this.doubleColors[3][this.matrix[i][k]]
-            });
-          }
-        }
-        cube = new THREE.Mesh(boxGeometry, boxMaterial);
-        sceneRow[k] = cube.id;
-        cube.position.set(
-          k * this.size + this.size / 2 - this.offsetX,
-          -i * this.size - this.size / 2 + this.offsetY,
-          0
-        );
-        this.scene.add(cube);
+        sceneRow[k] = this.addPixelToSceneByCoordinates({ y: i, x: k });
       }
       this.sceneMatrix[i] = sceneRow;
     }
 
     let lineGrid;
     for (let i = 1; i < this.sides[0]; i++) {
-      lineGridGeometry = new THREE.Geometry();
-      lineGridGeometry.vertices.push(new THREE.Vector3(0, 0, 0));
-      lineGridGeometry.vertices.push(
-        new THREE.Vector3(this.size * this.sides[1], 0, 0)
-      );
-      lineGridMaterial = new THREE.LineBasicMaterial({ color: this.lineColor });
-      lineGrid = new THREE.Line(lineGridGeometry, lineGridMaterial);
-      lineGrid.position.set(-this.offsetX, -i * this.size + this.offsetY, 10);
-      this.scene.add(lineGrid);
+      this.addLineToSceneByPosition(i, this.lineWidth);
     }
     for (let i = 1; i < this.sides[1]; i++) {
-      lineGridGeometry = new THREE.Geometry();
-      lineGridGeometry.vertices.push(new THREE.Vector3(0, 0, 0));
-      lineGridGeometry.vertices.push(
-        new THREE.Vector3(0, -this.size * this.sides[0], 0)
-      );
-      lineGridMaterial = new THREE.LineBasicMaterial({ color: this.lineColor });
-      lineGrid = new THREE.Line(lineGridGeometry, lineGridMaterial);
-      lineGrid.position.set(i * this.size - this.offsetX, this.offsetY, 10);
-      this.scene.add(lineGrid);
+      this.addLineToSceneByPosition(i, this.lineWidth, "Vertical");
     }
 
-    lineBorderGeometry = new THREE.Geometry();
-    lineBorderGeometry.vertices.push(new THREE.Vector3(0, 0, 0));
-    lineBorderGeometry.vertices.push(
-      new THREE.Vector3(this.size * this.sides[1], 0, 0)
+    this.addLineToSceneByPosition(0, this.lineWidth * 5);
+    this.addLineToSceneByPosition(this.sides[0], this.lineWidth * 5);
+    this.addLineToSceneByPosition(0, this.lineWidth * 5, "Vertical");
+    this.addLineToSceneByPosition(
+      this.sides[1],
+      this.lineWidth * 5,
+      "Vertical"
     );
-    lineBorderGeometry.vertices.push(
-      new THREE.Vector3(
-        this.size * this.sides[1],
-        -this.size * this.sides[0],
-        0
-      )
-    );
-    lineBorderGeometry.vertices.push(
-      new THREE.Vector3(0, -this.size * this.sides[0], 0)
-    );
-    lineBorderGeometry.vertices.push(new THREE.Vector3(0, 0, 0));
-    lineBorderMaterial = new THREE.LineBasicMaterial({
-      color: this.lineColor,
-      linewidth: 5
-    });
-    let lineBorder = new THREE.Line(lineBorderGeometry, lineBorderMaterial);
-    lineBorder.position.set(-this.offsetX, this.offsetY, 10);
-    this.scene.add(lineBorder);
 
     this.animate();
   }
 
+  addLineToSceneByPosition(pos, thickness, dir = "Horizontal") {
+    let geometry = new THREE.Geometry();
+    geometry.vertices.push(new THREE.Vector3(0, 0, 0));
+    if (dir == "Horizontal") {
+      geometry.vertices.push(
+        new THREE.Vector3(this.size * this.sides[1], 0, 0)
+      );
+    } else if (dir == "Vertical") {
+      geometry.vertices.push(
+        new THREE.Vector3(0, -this.size * this.sides[0], 0)
+      );
+    }
+
+    let material = new THREE.LineBasicMaterial({
+      color: this.lineColor,
+      linewidth: thickness
+    });
+    let line = new THREE.Line(geometry, material);
+    if (dir == "Horizontal") {
+      line.position.set(0, -pos * this.size, 10);
+    } else if (dir == "Vertical") {
+      line.position.set(pos * this.size, 0, 10);
+    }
+    this.scene.add(line);
+  }
+
+  addPixelToSceneByCoordinates(coords) {
+    let boxGeometry = new THREE.BoxGeometry(this.size, this.size, 1);
+    let boxMaterial, color;
+    if (this.layers == 1) {
+      boxMaterial = new THREE.MeshBasicMaterial({
+        color: this.singleColors[this.getToggleByCoordinates(coords)]
+      });
+    } else if (this.layers == 2) {
+      if (coords.x % 2 == 0 && coords.y % 2 == 0) {
+        color = 0;
+      } else if (coords.x % 2 == 1 && coords.y % 2 == 0) {
+        color = 1;
+      } else if (coords.x % 2 == 0 && coords.y % 2 == 1) {
+        color = 2;
+      } else if (coords.x % 2 == 1 && coords.y % 2 == 1) {
+        color = 3;
+      }
+      boxMaterial = new THREE.MeshBasicMaterial({
+        color: this.doubleColors[color][this.getToggleByCoordinates(coords)]
+      });
+    }
+    let cube = new THREE.Mesh(boxGeometry, boxMaterial);
+    cube.position.set(
+      coords.x * this.size + this.size / 2,
+      -coords.y * this.size - this.size / 2,
+      0
+    );
+    this.scene.add(cube);
+    return cube.id;
+  }
+
   draw() {
     if (changedPixel != null) {
-      this.scene
-        .getObjectById(this.sceneMatrix[changedPixel.y][changedPixel.x])
-        .material.color.set(this.getColorByCoordinates(changedPixel));
+      this.updatePixelByCoordinates(changedPixel);
       changedPixel = null;
     }
 
-    this.scene
-      .getObjectById(this.sceneMatrix[this.previous.y][this.previous.x])
-      .material.color.set(this.getColorByCoordinates(this.previous));
+    this.updatePixelByCoordinates(this.previous);
 
     this.raycaster.setFromCamera(this.mouse, this.camera);
     let intersects = this.raycaster.intersectObjects(this.scene.children);
@@ -173,6 +165,12 @@ class PixelView extends View {
         break;
       }
     }
+  }
+
+  updatePixelByCoordinates(coords) {
+    this.scene
+      .getObjectById(this.getIdByCoordinates(coords))
+      .material.color.set(this.getColorByCoordinates(coords));
   }
 
   flip(i, k) {
@@ -213,25 +211,6 @@ class PixelView extends View {
     }
   }
 
-  setCamera() {
-    if (this.camFactor > 20) {
-      this.camFactor = 20;
-    } else if (this.camFactor < 2) {
-      this.camFactor = 2;
-    }
-
-    this.camera.left =
-      -this.canvas.offsetWidth / this.camFactor + this.cameraOffset[0];
-    this.camera.right =
-      this.canvas.offsetWidth / this.camFactor + this.cameraOffset[1];
-    this.camera.top =
-      this.canvas.offsetHeight / this.camFactor + this.cameraOffset[2];
-    this.camera.bottom =
-      -this.canvas.offsetHeight / this.camFactor + this.cameraOffset[3];
-
-    this.camera.updateProjectionMatrix();
-  }
-
   onMouseDown(event) {
     this.raycaster.setFromCamera(this.mouse, this.camera);
     let intersects = this.raycaster.intersectObjects(this.scene.children);
@@ -265,7 +244,16 @@ class PixelView extends View {
   }
 
   onWindowResize() {
-    this.setCamera();
+    this.camera.left =
+      -this.canvas.offsetWidth / this.camFactor + this.cameraOffset[0];
+    this.camera.right =
+      this.canvas.offsetWidth / this.camFactor + this.cameraOffset[1];
+    this.camera.top =
+      this.canvas.offsetHeight / this.camFactor + this.cameraOffset[2];
+    this.camera.bottom =
+      -this.canvas.offsetHeight / this.camFactor + this.cameraOffset[3];
+
+    this.camera.updateProjectionMatrix();
     this.renderer.setSize(this.canvas.offsetWidth, this.canvas.offsetHeight);
   }
 }
