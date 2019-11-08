@@ -184,16 +184,6 @@ class PixelView extends View {
       .material.color.set(this.getColorByCoordinates(coords));
   }
 
-  flip(i, k) {
-    if (i < this.sides[0] && k < this.sides[1]) {
-      if (this.matrix[i][k] == 0) {
-        this.matrix[i][k] = 1;
-      } else {
-        this.matrix[i][k] = 0;
-      }
-    }
-  }
-
   getMaterial(options) {
     if (options.Material == "Mesh") {
       return new THREE.MeshBasicMaterial({ color: options.Color });
@@ -243,9 +233,7 @@ class PixelView extends View {
         for (let k = 0; k < this.sides[0]; k++) {
           let index = this.sceneMatrix[k].indexOf(square.id);
           if (index > -1) {
-            this.flip(k, index);
-            changed3D = { y: k, x: index };
-            changedPixel = { y: k, x: index };
+            this.toggleByCoords({ y: k, x: index });
             break;
           }
         }

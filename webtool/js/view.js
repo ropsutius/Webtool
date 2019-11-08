@@ -113,6 +113,40 @@ class View {
     return false;
   }
 
+  isEqualToPair(coords) {
+    if (
+      this.getToggleByCoordinates(coords) ==
+      this.getToggleByCoordinates(this.getPairPointByCoordinates(coords))
+    ) {
+      return true;
+    } else return false;
+  }
+
+  toggleByCoords(coords) {
+    if (coords.y < this.sides[0] && coords.x < this.sides[1]) {
+      if (
+        coords.y % 2 == 1 &&
+        this.isEqualToPair(coords) &&
+        this.getToggleByCoordinates(coords) == 0
+      ) {
+        return;
+      } else if (
+        coords.y % 2 == 0 &&
+        this.isEqualToPair(coords) &&
+        this.getToggleByCoordinates(coords) == 1
+      ) {
+        return;
+      }
+      if (this.getToggleByCoordinates(coords) == 0) {
+        this.matrix[coords.y][coords.x] = 1;
+      } else {
+        this.matrix[coords.y][coords.x] = 0;
+      }
+      changed3D = coords;
+      changedPixel = coords;
+    }
+  }
+
   onMouseMove(event) {
     this.mouse.x =
       ((event.clientX - this.canvas.offsetLeft) / this.canvas.offsetWidth) * 2 -
