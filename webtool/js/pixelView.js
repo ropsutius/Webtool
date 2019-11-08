@@ -14,22 +14,14 @@ class PixelView extends View {
   camFactor = 3;
   clicked;
   previous = { y: 0, x: 0 };
-  cameraOffset = [0, 0, 0, 0];
-  offsetX = (this.sides[1] * this.size) / 2;
-  offsetY = (this.sides[0] * this.size) / 2;
+  initCameraPos = {
+    x: (this.sides[1] * this.size) / 2,
+    y: -(this.sides[0] * this.size) / 2,
+    z: 100
+  };
 
   constructor(canvas, options) {
     super(canvas, options);
-
-    this.camera = new THREE.OrthographicCamera(
-      this.canvas.offsetWidth / -this.camFactor,
-      this.canvas.offsetWidth / this.camFactor,
-      this.canvas.offsetHeight / this.camFactor,
-      this.canvas.offsetHeight / -this.camFactor,
-      1,
-      10000
-    );
-    this.camera.position.z = 100;
 
     this.canvas.addEventListener(
       "mousedown",
@@ -43,6 +35,20 @@ class PixelView extends View {
   }
 
   initControls() {
+    this.camera = new THREE.OrthographicCamera(
+      this.canvas.offsetWidth / -this.camFactor,
+      this.canvas.offsetWidth / this.camFactor,
+      this.canvas.offsetHeight / this.camFactor,
+      this.canvas.offsetHeight / -this.camFactor,
+      1,
+      10000
+    );
+    this.camera.position.set(
+      this.initCameraPos.x,
+      this.initCameraPos.y,
+      this.initCameraPos.z
+    );
+
     this.controls = new THREE.OrbitControls(
       this.camera,
       this.renderer.domElement
@@ -54,6 +60,11 @@ class PixelView extends View {
     this.controls.mouseButtons = {
       RIGHT: THREE.MOUSE.PAN
     };
+    this.controls.target = new THREE.Vector3(
+      this.initCameraPos.x,
+      this.initCameraPos.y,
+      0
+    );
   }
 
   initGrid() {
@@ -244,14 +255,10 @@ class PixelView extends View {
   }
 
   onWindowResize() {
-    this.camera.left =
-      -this.canvas.offsetWidth / this.camFactor + this.cameraOffset[0];
-    this.camera.right =
-      this.canvas.offsetWidth / this.camFactor + this.cameraOffset[1];
-    this.camera.top =
-      this.canvas.offsetHeight / this.camFactor + this.cameraOffset[2];
-    this.camera.bottom =
-      -this.canvas.offsetHeight / this.camFactor + this.cameraOffset[3];
+    this.camera.left = -this.canvas.offsetWidth / this.camFactor;
+    this.camera.right = this.canvas.offsetWidth / this.camFactor;
+    this.camera.top = this.canvas.offsetHeight / this.camFactor;
+    this.camera.bottom = -this.canvas.offsetHeight / this.camFactor;
 
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(this.canvas.offsetWidth, this.canvas.offsetHeight);
