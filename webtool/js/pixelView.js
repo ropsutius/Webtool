@@ -12,7 +12,6 @@ class PixelView extends View {
   lineWidth = 1;
   size = 10;
   camFactor = 3;
-  clicked;
   previous = { y: 0, x: 0 };
   initCameraPos = {
     x: (this.sides[1] * this.size) / 2,
@@ -233,7 +232,7 @@ class PixelView extends View {
         for (let k = 0; k < this.sides[0]; k++) {
           let index = this.sceneMatrix[k].indexOf(square.id);
           if (index > -1) {
-            this.toggleByCoords({ y: k, x: index });
+            this.toggleByCoordinates({ y: k, x: index });
             break;
           }
         }
@@ -250,5 +249,17 @@ class PixelView extends View {
 
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(this.canvas.offsetWidth, this.canvas.offsetHeight);
+  }
+
+  reset() {
+    this.sceneMatrix = [];
+    this.clicked = false;
+    this.previous = { x: 0, y: 0 };
+
+    this.scene.dispose();
+    this.scene = new THREE.Scene();
+    this.scene.background = new THREE.Color(this.backgroundColor);
+    this.matrix = matrix;
+    this.initGrid();
   }
 }

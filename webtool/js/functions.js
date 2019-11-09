@@ -32,13 +32,15 @@ function loadLayer() {
   } else if (layerCount == 2) {
     layerCount = 1;
   }
-  canvasP.removeChild(canvasP.childNodes[0]);
-  canvasP = document.querySelector("#pixel-view");
-  pv = new PixelView(canvasP, { Layers: layerCount });
 
-  canvas3d.removeChild(canvas3d.childNodes[0]);
-  canvas3d = document.getElementById("3d-view");
-  tv = new ThreeDView(canvas3d, { Layers: layerCount });
+  pv.layers = layerCount;
+  tv.layers = layerCount;
+  pv.reset();
+  tv.reset();
+
+  // canvas3d.removeChild(canvas3d.childNodes[0]);
+  // canvas3d = document.getElementById("3d-view");
+  // tv = new ThreeDView(canvas3d, { Layers: layerCount });
 }
 
 function exportTIFF() {

@@ -26,10 +26,16 @@ class ThreeDView extends View {
     y: this.warpHeight * this.layers * 10,
     z: this.sides[0] * this.warpLength
   };
-  layerOffset = 10;
+  defaultLayerOffset = 5;
 
   constructor(canvas, options) {
     super(canvas, options);
+
+    if (options.Layers == 1) {
+      this.layerOffset = 0;
+    } else if (options.Layers == 2) {
+      this.layerOffset = this.defaultLayerOffset;
+    }
 
     this.initControls();
     this.initWeave();
@@ -265,5 +271,19 @@ class ThreeDView extends View {
     this.camera.aspect = this.canvas.offsetWidth / this.canvas.offsetHeight;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(this.canvas.offsetWidth, this.canvas.offsetHeight);
+  }
+
+  reset() {
+    this.sceneMatrix = [];
+    this.scene.dispose();
+    this.scene = new THREE.Scene();
+    this.scene.background = new THREE.Color(this.backgroundColor);
+    this.matrix = matrix;
+    if (this.layers == 1) {
+      this.layerOffset = 0;
+    } else if (this.layers == 2) {
+      this.layerOffset = this.defaultLayerOffset;
+    }
+    this.initWeave();
   }
 }

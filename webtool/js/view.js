@@ -1,5 +1,4 @@
 class View {
-  matrix;
   sceneMatrix = [];
   backgroundColor = 0xf5f5f5;
 
@@ -122,8 +121,8 @@ class View {
     } else return false;
   }
 
-  toggleByCoords(coords) {
-    if (coords.y < this.sides[0] && coords.x < this.sides[1]) {
+  toggleByCoordinates(coords) {
+    if (this.layers == 2) {
       if (
         coords.y % 2 == 1 &&
         this.isEqualToPair(coords) &&
@@ -137,14 +136,14 @@ class View {
       ) {
         return;
       }
-      if (this.getToggleByCoordinates(coords) == 0) {
-        this.matrix[coords.y][coords.x] = 1;
-      } else {
-        this.matrix[coords.y][coords.x] = 0;
-      }
-      changed3D = coords;
-      changedPixel = coords;
     }
+    if (this.getToggleByCoordinates(coords) == 0) {
+      this.matrix[coords.y][coords.x] = 1;
+    } else {
+      this.matrix[coords.y][coords.x] = 0;
+    }
+    changed3D = coords;
+    changedPixel = coords;
   }
 
   onMouseMove(event) {
