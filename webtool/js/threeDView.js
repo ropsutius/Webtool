@@ -97,7 +97,7 @@ class ThreeDView extends View {
     }
 
     let axesHelper = new THREE.AxesHelper(5);
-    axesHelper.translateY(10 + this.layerOffset);
+    axesHelper.translateY(this.layers * this.layerOffset + 10);
     this.scene.add(axesHelper);
 
     this.animate();
@@ -127,8 +127,10 @@ class ThreeDView extends View {
       color = this.weftColor;
     } else if (type == "Warp") {
       color = this.warpColor;
-    } else return null;
-
+    }
+    if (curve == null) {
+      curve = [new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 0)];
+    }
     let tube = new THREE.TubeBufferGeometry(
       new THREE.CatmullRomCurve3(curve),
       this.tubeSegments,
@@ -138,25 +140,29 @@ class ThreeDView extends View {
     );
     let material = new THREE.MeshLambertMaterial({ color: color });
     let mesh = new THREE.Mesh(tube, material);
+    if (curve == null) {
+      mesh.visible = false;
+    }
     this.scene.add(mesh);
     return mesh.id;
   }
 
   updateTubeByCoordinates(coords) {
-    let object = this.scene.getObjectById(
-      this.getIdByCoordinates(this.getPrimePoint(coords))
-    );
+    coords = this.getPrimePoint(coords);
+    let object = this.scene.getObjectById(this.getIdByCoordinates(coords));
     let curve = this.getWarpPointsByCoordinates(coords);
-    object.geometry.copy(
-      new THREE.TubeBufferGeometry(
-        new THREE.CatmullRomCurve3(curve),
-        this.tubeSegments,
-        this.r,
-        this.radialSegments,
-        false
-      )
-    );
-    object.geometry.needsUpdate = true;
+    if (curve != null) {
+      object.geometry.copy(
+        new THREE.TubeBufferGeometry(
+          new THREE.CatmullRomCurve3(curve),
+          this.tubeSegments,
+          this.r,
+          this.radialSegments,
+          false
+        )
+      );
+      object.geometry.needsUpdate = true;
+    }
   }
 
   draw() {
@@ -184,28 +190,6 @@ class ThreeDView extends View {
     } else {
       prevA = this.layers - (curr.x % this.layers) - 1;
     }
-
-    // let prevY, currY;
-    // if (curr.x % 2 == 1) {
-    //   prevY = this.warpHeight * prevA;
-    //   currY = this.warpHeight * currA;
-    //   if (prevA == 2) {
-    //     prevY += this.layerOffset;
-    //   }
-    //   if (currA == 2) {
-    //     currY += this.layerOffset;
-    //   }
-    //   midY = Math.abs(currY - prevY) / 2 + Math.min(prevY, currY);
-    // } else {
-    //   prevY = this.warpHeight * prevA + this.layerOffset;
-    //   currY = this.warpHeight * currA + this.layerOffset;
-    //   if (prevA == 0) {
-    //     prevY -= this.layerOffset;
-    //   }
-    //   if (currA == 0) {
-    //     currY -= this.layerOffset;
-    //   }
-    // }
 
     let prevY =
       this.warpHeight * prevA +
