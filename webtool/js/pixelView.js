@@ -1,22 +1,42 @@
 class PixelView extends View {
   clicked = false;
-  singleColors = [0xffffff, 0x303030];
-  doubleColors = [
-    [0xffffdd, 0x303030],
-    [0xffdddd, 0x303030],
-    [0xddddff, 0x303030],
-    [0xddffdd, 0x303030]
-  ];
-  tripleColors = [
-    [0xffffdd, 0x303030],
-    [0xffdddd, 0x303030],
-    [0xddddff, 0x303030],
-    [0xddffdd, 0x303030],
-    [0xffffdd, 0x303030],
-    [0xffdddd, 0x303030],
-    [0xddddff, 0x303030],
-    [0xffffdd, 0x303030],
-    [0xffdddd, 0x303030]
+  pixelColors = [
+    { "00": [0xffffff, 0x303030] },
+    {
+      "00": [0xffffdd, 0x303030],
+      "01": [0xffdddd, 0x303030],
+      "10": [0xddddff, 0x303030],
+      "11": [0xddffdd, 0x303030]
+    },
+    {
+      "00": [0xffffdd, 0x303030],
+      "01": [0xffdddd, 0x303030],
+      "02": [0xddddff, 0x303030],
+      "10": [0xddffdd, 0x303030],
+      "11": [0xffffdd, 0x303030],
+      "12": [0xffdddd, 0x303030],
+      "20": [0xddddff, 0x303030],
+      "21": [0xddffdd, 0x303030],
+      "22": [0xffffdd, 0x303030]
+    },
+    {
+      "00": [0xffffdd, 0x303030],
+      "01": [0xffdddd, 0x303030],
+      "02": [0xffffdd, 0x303030],
+      "03": [0xffdddd, 0x303030],
+      "10": [0xddddff, 0x303030],
+      "11": [0xddffdd, 0x303030],
+      "12": [0xddddff, 0x303030],
+      "13": [0xddffdd, 0x303030],
+      "20": [0xffffdd, 0x303030],
+      "21": [0xffdddd, 0x303030],
+      "22": [0xffffdd, 0x303030],
+      "23": [0xffdddd, 0x303030],
+      "30": [0xddddff, 0x303030],
+      "31": [0xddffdd, 0x303030],
+      "32": [0xddddff, 0x303030],
+      "33": [0xddffdd, 0x303030]
+    }
   ];
   lineColor = 0x000000;
   highlightColor = 0xcc4444;
@@ -86,7 +106,7 @@ class PixelView extends View {
     for (let i = 0; i < this.sides[0]; i++) {
       let sceneRow = [];
       for (let k = 0; k < this.sides[1]; k++) {
-        sceneRow[k] = this.addPixelToSceneByCoordinates({ y: i, x: k });
+        sceneRow[k] = this.addPixelToScene({ y: i, x: k });
       }
       this.sceneMatrix[i] = sceneRow;
     }
@@ -137,11 +157,11 @@ class PixelView extends View {
     this.scene.add(line);
   }
 
-  addPixelToSceneByCoordinates(coords) {
+  addPixelToScene(coords) {
     let boxGeometry = new THREE.BoxGeometry(this.size, this.size, 1);
     let boxMaterial, color;
     boxMaterial = new THREE.MeshBasicMaterial({
-      color: this.getColorByCoordinates(coords)
+      color: this.getPixelColor(coords)
     });
     let cube = new THREE.Mesh(boxGeometry, boxMaterial);
     cube.position.set(
@@ -155,11 +175,11 @@ class PixelView extends View {
 
   draw() {
     if (changedPixel != null) {
-      this.updatePixelByCoordinates(changedPixel);
+      this.updatePixel(changedPixel);
       changedPixel = null;
     }
 
-    this.updatePixelByCoordinates(this.previous);
+    this.updatePixel(this.previous);
 
     this.raycaster.setFromCamera(this.mouse, this.camera);
     let intersects = this.raycaster.intersectObjects(this.scene.children);
@@ -173,10 +193,10 @@ class PixelView extends View {
     }
   }
 
-  updatePixelByCoordinates(coords) {
+  updatePixel(coords) {
     this.scene
-      .getObjectById(this.getIdByCoordinates(coords))
-      .material.color.set(this.getColorByCoordinates(coords));
+      .getObjectById(this.getId(coords))
+      .material.color.set(this.getPixelColor(coords));
   }
 
   getMaterial(options) {
@@ -187,44 +207,14 @@ class PixelView extends View {
     }
   }
 
-  getColorById(id) {
-    return this.getColorByCoordinates(this.getCoordinatesById(id));
+  getPixelColorById(id) {
+    return this.getPixelColor(this.getCoordinatesById(id));
   }
 
-  getColorByCoordinates(coords) {
-    if (this.layers == 1) {
-      return this.singleColors[this.getToggleByCoordinates(coords)];
-    } else if (this.layers == 2) {
-      if (coords.x % 2 == 0 && coords.y % 2 == 0) {
-        return this.doubleColors[0][this.matrix[coords.y][coords.x]];
-      } else if (coords.x % 2 == 1 && coords.y % 2 == 0) {
-        return this.doubleColors[1][this.matrix[coords.y][coords.x]];
-      } else if (coords.x % 2 == 0 && coords.y % 2 == 1) {
-        return this.doubleColors[2][this.matrix[coords.y][coords.x]];
-      } else if (coords.x % 2 == 1 && coords.y % 2 == 1) {
-        return this.doubleColors[3][this.matrix[coords.y][coords.x]];
-      }
-    } else if (this.layers == 3) {
-      if (coords.x % 3 == 0 && coords.y % 3 == 0) {
-        return this.tripleColors[0][this.getToggleByCoordinates(coords)];
-      } else if (coords.x % 3 == 1 && coords.y % 3 == 0) {
-        return this.tripleColors[0][this.getToggleByCoordinates(coords)];
-      } else if (coords.x % 3 == 2 && coords.y % 3 == 0) {
-        return this.tripleColors[0][this.getToggleByCoordinates(coords)];
-      } else if (coords.x % 3 == 0 && coords.y % 3 == 1) {
-        return this.tripleColors[0][this.getToggleByCoordinates(coords)];
-      } else if (coords.x % 3 == 1 && coords.y % 3 == 1) {
-        return this.tripleColors[0][this.getToggleByCoordinates(coords)];
-      } else if (coords.x % 3 == 2 && coords.y % 3 == 1) {
-        return this.tripleColors[0][this.getToggleByCoordinates(coords)];
-      } else if (coords.x % 3 == 0 && coords.y % 3 == 2) {
-        return this.tripleColors[0][this.getToggleByCoordinates(coords)];
-      } else if (coords.x % 3 == 1 && coords.y % 3 == 2) {
-        return this.tripleColors[0][this.getToggleByCoordinates(coords)];
-      } else if (coords.x % 3 == 2 && coords.y % 3 == 2) {
-        return this.tripleColors[0][this.getToggleByCoordinates(coords)];
-      }
-    }
+  getPixelColor(coords) {
+    let string =
+      (coords.y % this.layers).toString() + (coords.x % this.layers).toString();
+    return this.pixelColors[this.layers - 1][string][this.getToggle(coords)];
   }
 
   onMouseDown(event) {
@@ -248,7 +238,7 @@ class PixelView extends View {
         for (let k = 0; k < this.sides[0]; k++) {
           let index = this.sceneMatrix[k].indexOf(square.id);
           if (index > -1) {
-            this.toggleByCoordinates({ y: k, x: index });
+            this.toggle({ y: k, x: index });
             break;
           }
         }

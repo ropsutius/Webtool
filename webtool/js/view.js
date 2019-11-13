@@ -1,10 +1,12 @@
 class View {
   sceneMatrix = [];
   backgroundColor = 0xf5f5f5;
-  doubleOK = ["00", "10", "11"];
-  doubleBAD = ["01"];
-  tripleOK = ["000", "100", "110", "111"];
-  tripleBAD = ["011", "001", "101", "010"];
+  okList = [
+    ["0", "1"],
+    ["00", "10", "11"],
+    ["000", "100", "110", "111"],
+    ["0000", "1000", "1100", "1110", "1111"]
+  ];
 
   constructor(canvas, options) {
     this.matrix = matrix;
@@ -51,27 +53,27 @@ class View {
     return null;
   }
 
-  getIdByCoordinates(coords) {
+  getId(coords) {
     return this.sceneMatrix[coords.y][coords.x] === undefined
       ? null
       : this.sceneMatrix[coords.y][coords.x];
   }
 
-  getToggleByCoordinates(coords) {
+  getToggle(coords) {
     return this.matrix[coords.y][coords.x];
   }
 
   getToggleById(id) {
-    return this.getToggleByCoordinates(this.getCoordinatesById(id));
+    return this.getToggle(this.getCoordinatesById(id));
   }
 
-  getPreviousPointByCoordinates(coords) {
+  getPreviousSet(coords) {
     return coords.y < this.layers
       ? null
       : { y: coords.y - this.layers, x: coords.x };
   }
 
-  getNextPointByCoordinates(coords) {
+  getNextSet(coords) {
     return coords.y > this.sides[0] - this.layers - 1
       ? null
       : { y: coords.y + this.layers, x: coords.x };
@@ -79,12 +81,12 @@ class View {
 
   getPrimePoint(coords) {
     while (!this.isPrimePoint(coords)) {
-      coords = this.getRotationPointByCoordinates(coords);
+      coords = this.getNextPointInSet(coords);
     }
     return coords;
   }
 
-  getRotationPointByCoordinates(coords) {
+  getNextPointInSet(coords) {
     return coords.y % this.layers < this.layers - 1
       ? { x: coords.x, y: coords.y + 1 }
       : { x: coords.x, y: coords.y - this.layers + 1 };
@@ -96,7 +98,7 @@ class View {
     } else {
       let next = coords;
       for (let i = 1; i < this.layers; i++) {
-        next = this.getRotationPointByCoordinates(next);
+        next = this.getNextPointInSet(next);
         if (this.isStartPoint(next)) {
           return next;
         }
@@ -104,26 +106,21 @@ class View {
     }
   }
 
-  getHeightByCoordinates(coords) {
-    if (this.layers == 1) {
-      return this.getToggleByCoordinates(coords);
-    }
-    let start = this.getStartPoint(coords);
-    let string = this.getToggleByCoordinates(start).toString();
-    let next = start;
+  getHeight(coords) {
+    let string = this.getSetString(coords);
+    return this.okList[this.layers - 1].includes(string)
+      ? this.okList[this.layers - 1].indexOf(string)
+      : null;
+  }
+
+  getSetString(coords) {
+    let point = this.getStartPoint(coords);
+    let string = this.getToggle(point).toString();
     for (let i = 1; i < this.layers; i++) {
-      next = this.getRotationPointByCoordinates(next);
-      string += this.getToggleByCoordinates(next).toString();
+      point = this.getNextPointInSet(point);
+      string += this.getToggle(point).toString();
     }
-    if (this.layers == 2) {
-      return this.doubleOK.includes(string)
-        ? this.doubleOK.indexOf(string)
-        : null;
-    } else if (this.layers == 3) {
-      return this.tripleOK.includes(string)
-        ? this.tripleOK.indexOf(string)
-        : null;
-    }
+    return string;
   }
 
   isStartPoint(coords) {
@@ -138,44 +135,34 @@ class View {
   }
 
   isEqualToPair(coords) {
-    return this.getToggleByCoordinates(coords) ==
-      this.getToggleByCoordinates(this.getRotationPointByCoordinates(coords))
+    return this.getToggle(coords) ==
+      this.getToggle(this.getNextPointInSet(coords))
       ? true
       : false;
   }
 
-  toggleByCoordinates(coords) {
-    if (this.layers == 2) {
-      if (
-        coords.y % 2 == 1 &&
-        this.isEqualToPair(coords) &&
-        this.getToggleByCoordinates(coords) == 0
-      ) {
-        return;
-      } else if (
-        coords.y % 2 == 0 &&
-        this.isEqualToPair(coords) &&
-        this.getToggleByCoordinates(coords) == 1
-      ) {
-        return;
-      }
-    } else if (this.layers == 3) {
-    }
-    if (this.getToggleByCoordinates(coords) == 0) {
+  isRealSet(coords) {}
+
+  toggle(coords) {
+    if (this.getToggle(coords) == 0) {
       this.matrix[coords.y][coords.x] = 1;
     } else {
       this.matrix[coords.y][coords.x] = 0;
     }
-    changed3D = coords;
-    changedPixel = coords;
+    let string = this.getSetString(coords);
+    if (!this.okList[this.layers - 1].includes(string)) {
+      if (this.getToggle(coords) == 0) {
+        this.matrix[coords.y][coords.x] = 1;
+      } else {
+        this.matrix[coords.y][coords.x] = 0;
+      }
+    } else {
+      changed3D = coords;
+      changedPixel = coords;
+    }
   }
 
-  // generatePermutations() {
-  //   for (let i = 0; i < Math.pow(2, this.layers); i++) {
-  //
-  //   }
-  //   return [];
-  // }
+  generatePermutations() {}
 
   onMouseMove(event) {
     this.mouse.x =

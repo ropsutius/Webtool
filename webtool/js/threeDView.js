@@ -86,7 +86,7 @@ class ThreeDView extends View {
         if (!this.isPrimePoint({ y: k, x: i })) {
           continue;
         }
-        curve = this.getWarpPointsByCoordinates({ y: k, x: i });
+        curve = this.getWarpPoints({ y: k, x: i });
         let id = this.addTubeToScene(curve, "Warp");
         this.sceneMatrix[k][i] = id;
       }
@@ -147,10 +147,10 @@ class ThreeDView extends View {
     return mesh.id;
   }
 
-  updateTubeByCoordinates(coords) {
+  updateTube(coords) {
     coords = this.getPrimePoint(coords);
-    let object = this.scene.getObjectById(this.getIdByCoordinates(coords));
-    let curve = this.getWarpPointsByCoordinates(coords);
+    let object = this.scene.getObjectById(this.getId(coords));
+    let curve = this.getWarpPoints(coords);
     if (curve != null) {
       object.geometry.copy(
         new THREE.TubeBufferGeometry(
@@ -167,50 +167,45 @@ class ThreeDView extends View {
 
   draw() {
     if (changed3D != null) {
-      this.updateTubeByCoordinates(changed3D);
+      this.updateTube(changed3D);
 
-      let next = this.getNextPointByCoordinates(changed3D);
+      let next = this.getNextSet(changed3D);
       if (next != null) {
-        this.updateTubeByCoordinates(next);
+        this.updateTube(next);
       }
       changed3D = null;
     }
   }
 
-  getWarpPointsByCoordinates(curr) {
+  getWarpPoints(curr) {
     let prevA;
-    let currA = this.getHeightByCoordinates(curr);
+    let currA = this.getHeight(curr);
     if (currA == null) {
       return null;
     }
 
-    let prev = this.getPreviousPointByCoordinates(curr);
+    let prev = this.getPreviousSet(curr);
     if (prev != null) {
-      prevA = this.getHeightByCoordinates(prev);
+      prevA = this.getHeight(prev);
     } else {
       prevA = this.layers - (curr.x % this.layers) - 1;
     }
+    let warp = this.layers - (curr.x % this.layers) - 1;
+    let prevY = this.warpHeight * prevA + warp * this.layerOffset;
+    let currY = this.warpHeight * currA + warp * this.layerOffset;
 
-    let prevY =
-      this.warpHeight * prevA +
-      (this.layers - (curr.x % this.layers) - 1) * this.layerOffset;
-    let currY =
-      this.warpHeight * currA +
-      (this.layers - (curr.x % this.layers) - 1) * this.layerOffset;
-    if (currA < this.layers - (curr.x % this.layers) - 1) {
-      currY -=
-        (this.layers - (curr.x % this.layers) - 1 - currA) * this.layerOffset;
-    } else if (currA > this.layers - (curr.x % this.layers)) {
-      currY -=
-        (currA - this.layers - (curr.x % this.layers)) * this.layerOffset;
+    if (currA < warp) {
+      currY -= (warp - currA) * this.layerOffset;
+    } else if (currA > warp + 1) {
+      currY += (currA - warp - 1) * this.layerOffset;
     }
-    if (prevA < this.layers - (curr.x % this.layers) - 1) {
-      prevY -=
-        (this.layers - (curr.x % this.layers) - 1 - prevA) * this.layerOffset;
-    } else if (prevA > this.layers - (curr.x % this.layers)) {
-      prevY -=
-        (prevA - this.layers - (curr.x % this.layers)) * this.layerOffset;
+
+    if (prevA < warp) {
+      prevY -= (warp - prevA) * this.layerOffset;
+    } else if (prevA > warp + 1) {
+      prevY += (prevA - warp - 1) * this.layerOffset;
     }
+
     let midY = Math.abs(currY - prevY) / 2 + Math.min(prevY, currY);
     let x = ((curr.x - (curr.x % this.layers)) / this.layers) * this.weftLength;
     let z = ((curr.y - (curr.y % this.layers)) / this.layers) * this.warpLength;

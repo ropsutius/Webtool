@@ -1,7 +1,7 @@
 let changed3D = null;
 let changedPixel = null;
 let pv, tv, canvasP, canvas3d;
-let layerCount = 1;
+let layerCount = 4;
 let matrix;
 if (layerCount == 1) {
   matrix = plain_single;
@@ -9,6 +9,8 @@ if (layerCount == 1) {
   matrix = plain_double;
 } else if (layerCount == 3) {
   matrix = plain_triple;
+} else if (layerCount == 4) {
+  matrix = plain_quad;
 }
 
 function to3dView() {
@@ -40,6 +42,8 @@ function loadLayer() {
   } else if (layerCount == 2) {
     layerCount = 3;
   } else if (layerCount == 3) {
+    layerCount = 4;
+  } else if (layerCount == 4) {
     layerCount = 1;
   }
 
