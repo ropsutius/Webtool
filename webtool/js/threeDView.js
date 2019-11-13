@@ -33,7 +33,7 @@ class ThreeDView extends View {
 
     if (options.Layers == 1) {
       this.layerOffset = 0;
-    } else if (options.Layers == 2) {
+    } else {
       this.layerOffset = this.defaultLayerOffset;
     }
 
@@ -104,22 +104,19 @@ class ThreeDView extends View {
   }
 
   *getWeftPoints() {
+    let x, y, z;
     for (let i = 0; i < this.sides[0]; i++) {
-      let x, y, z;
-      if (this.layers == 1) {
-        x = [-this.r * 2, (this.sides[1] - 1) * this.weftLength + this.r * 2];
-        y = this.warpHeight / 2;
-        z = (i + 1) * this.warpLength;
-      } else if (this.layers == 2) {
-        x = [-this.r * 2, ((this.sides[1] - 1) * this.weftLength) / 2 + this.r];
-        if (i % 2 == 0) {
-          y = this.warpHeight / 2;
-          z = (i * this.warpLength) / 2 + this.warpLength;
-        } else {
-          y = (3 / 2) * this.warpHeight + this.layerOffset;
-          z = ((i - 1) * this.warpLength) / 2 + this.warpLength;
-        }
-      }
+      x = [
+        -this.r * 2,
+        ((this.sides[1] - 1) * this.weftLength) / this.layers + this.r
+      ];
+      y =
+        this.warpHeight * (i % this.layers) +
+        this.warpHeight / 2 +
+        (i % this.layers) * this.layerOffset;
+      z =
+        ((i - (i % this.layers)) / this.layers) * this.warpLength +
+        this.warpLength;
       yield [new THREE.Vector3(x[0], y, z), new THREE.Vector3(x[1], y, z)];
     }
   }
@@ -146,10 +143,9 @@ class ThreeDView extends View {
   }
 
   updateTubeByCoordinates(coords) {
-    if (!this.isPrimePoint(coords)) {
-      coords = this.getPairPointByCoordinates(coords);
-    }
-    let object = this.scene.getObjectById(this.getIdByCoordinates(coords));
+    let object = this.scene.getObjectById(
+      this.getIdByCoordinates(this.getPrimePoint(coords))
+    );
     let curve = this.getWarpPointsByCoordinates(coords);
     object.geometry.copy(
       new THREE.TubeBufferGeometry(
@@ -178,54 +174,62 @@ class ThreeDView extends View {
   getWarpPointsByCoordinates(curr) {
     let prevA;
     let currA = this.getHeightByCoordinates(curr);
+    if (currA == null) {
+      return null;
+    }
 
     let prev = this.getPreviousPointByCoordinates(curr);
     if (prev != null) {
       prevA = this.getHeightByCoordinates(prev);
     } else {
-      if (curr.x % 2 == 1) {
-        prevA = 0;
-      } else {
-        prevA = 1;
-      }
+      prevA = this.layers - (curr.x % this.layers) - 1;
     }
 
-    let prevY, midY, currY;
-    if (curr.x % 2 == 1) {
-      prevY = this.warpHeight * prevA;
-      currY = this.warpHeight * currA;
-      if (prevA == 2) {
-        prevY += this.layerOffset;
-      }
-      if (currA == 2) {
-        currY += this.layerOffset;
-      }
-      midY = Math.abs(currY - prevY) / 2 + Math.min(prevY, currY);
-    } else {
-      prevY = this.warpHeight * prevA + this.layerOffset;
-      currY = this.warpHeight * currA + this.layerOffset;
-      if (prevA == 0) {
-        prevY -= this.layerOffset;
-      }
-      if (currA == 0) {
-        currY -= this.layerOffset;
-      }
-      midY = Math.abs(currY - prevY) / 2 + Math.min(prevY, currY);
-    }
+    // let prevY, currY;
+    // if (curr.x % 2 == 1) {
+    //   prevY = this.warpHeight * prevA;
+    //   currY = this.warpHeight * currA;
+    //   if (prevA == 2) {
+    //     prevY += this.layerOffset;
+    //   }
+    //   if (currA == 2) {
+    //     currY += this.layerOffset;
+    //   }
+    //   midY = Math.abs(currY - prevY) / 2 + Math.min(prevY, currY);
+    // } else {
+    //   prevY = this.warpHeight * prevA + this.layerOffset;
+    //   currY = this.warpHeight * currA + this.layerOffset;
+    //   if (prevA == 0) {
+    //     prevY -= this.layerOffset;
+    //   }
+    //   if (currA == 0) {
+    //     currY -= this.layerOffset;
+    //   }
+    // }
 
-    let x, z;
-    if (this.layers == 1) {
-      x = curr.x * this.weftLength;
-      z = curr.y * this.warpLength;
-    } else if (this.layers == 2) {
-      if (curr.x % 2 == 0 && curr.y % 2 == 1) {
-        x = (curr.x / 2) * this.weftLength;
-        z = ((curr.y - 1) / 2) * this.warpLength;
-      } else if (curr.x % 2 == 1 && curr.y % 2 == 0) {
-        x = ((curr.x - 1) / 2) * this.weftLength;
-        z = (curr.y / 2) * this.warpLength;
-      }
+    let prevY =
+      this.warpHeight * prevA +
+      (this.layers - (curr.x % this.layers) - 1) * this.layerOffset;
+    let currY =
+      this.warpHeight * currA +
+      (this.layers - (curr.x % this.layers) - 1) * this.layerOffset;
+    if (currA < this.layers - (curr.x % this.layers) - 1) {
+      currY -=
+        (this.layers - (curr.x % this.layers) - 1 - currA) * this.layerOffset;
+    } else if (currA > this.layers - (curr.x % this.layers)) {
+      currY -=
+        (currA - this.layers - (curr.x % this.layers)) * this.layerOffset;
     }
+    if (prevA < this.layers - (curr.x % this.layers) - 1) {
+      prevY -=
+        (this.layers - (curr.x % this.layers) - 1 - prevA) * this.layerOffset;
+    } else if (prevA > this.layers - (curr.x % this.layers)) {
+      prevY -=
+        (prevA - this.layers - (curr.x % this.layers)) * this.layerOffset;
+    }
+    let midY = Math.abs(currY - prevY) / 2 + Math.min(prevY, currY);
+    let x = ((curr.x - (curr.x % this.layers)) / this.layers) * this.weftLength;
+    let z = ((curr.y - (curr.y % this.layers)) / this.layers) * this.warpLength;
 
     if (prevA == currA) {
       return [
@@ -244,29 +248,6 @@ class ThreeDView extends View {
     }
   }
 
-  getHeightByCoordinates(curr) {
-    let currA = this.getToggleByCoordinates(curr);
-    if (this.layers == 1) {
-      return currA;
-    } else if (this.layers == 2) {
-      let pairA = this.getToggleByCoordinates(
-        this.getPairPointByCoordinates(curr)
-      );
-      if (currA == pairA && currA == 0) {
-        return 0;
-      } else if (currA == pairA && currA == 1) {
-        return 2;
-      } else if (
-        (curr.y % 2 == 0 && currA == 1 && pairA == 0) ||
-        (curr.y % 2 == 1 && currA == 0 && pairA == 1)
-      ) {
-        return 1;
-      } else {
-        return null;
-      }
-    }
-  }
-
   onWindowResize() {
     this.camera.aspect = this.canvas.offsetWidth / this.canvas.offsetHeight;
     this.camera.updateProjectionMatrix();
@@ -281,7 +262,7 @@ class ThreeDView extends View {
     this.matrix = matrix;
     if (this.layers == 1) {
       this.layerOffset = 0;
-    } else if (this.layers == 2) {
+    } else {
       this.layerOffset = this.defaultLayerOffset;
     }
     this.initWeave();

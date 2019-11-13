@@ -1,7 +1,15 @@
 let changed3D = null;
 let changedPixel = null;
 let pv, tv, canvasP, canvas3d;
-let layerCount = 2;
+let layerCount = 3;
+let matrix;
+if (layerCount == 1) {
+  matrix = plain_single;
+} else if (layerCount == 2) {
+  matrix = plain_double;
+} else if (layerCount == 3) {
+  matrix = plain_triple;
+}
 
 function to3dView() {
   document.getElementById("pixel-view").style.display = "none";
@@ -30,6 +38,8 @@ function loadLayer() {
   if (layerCount == 1) {
     layerCount = 2;
   } else if (layerCount == 2) {
+    layerCount = 3;
+  } else if (layerCount == 3) {
     layerCount = 1;
   }
 

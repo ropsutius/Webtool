@@ -7,6 +7,17 @@ class PixelView extends View {
     [0xddddff, 0x303030],
     [0xddffdd, 0x303030]
   ];
+  tripleColors = [
+    [0xffffdd, 0x303030],
+    [0xffdddd, 0x303030],
+    [0xddddff, 0x303030],
+    [0xddffdd, 0x303030],
+    [0xffffdd, 0x303030],
+    [0xffdddd, 0x303030],
+    [0xddddff, 0x303030],
+    [0xffffdd, 0x303030],
+    [0xffdddd, 0x303030]
+  ];
   lineColor = 0x000000;
   highlightColor = 0xcc4444;
   lineWidth = 1;
@@ -129,24 +140,9 @@ class PixelView extends View {
   addPixelToSceneByCoordinates(coords) {
     let boxGeometry = new THREE.BoxGeometry(this.size, this.size, 1);
     let boxMaterial, color;
-    if (this.layers == 1) {
-      boxMaterial = new THREE.MeshBasicMaterial({
-        color: this.singleColors[this.getToggleByCoordinates(coords)]
-      });
-    } else if (this.layers == 2) {
-      if (coords.x % 2 == 0 && coords.y % 2 == 0) {
-        color = 0;
-      } else if (coords.x % 2 == 1 && coords.y % 2 == 0) {
-        color = 1;
-      } else if (coords.x % 2 == 0 && coords.y % 2 == 1) {
-        color = 2;
-      } else if (coords.x % 2 == 1 && coords.y % 2 == 1) {
-        color = 3;
-      }
-      boxMaterial = new THREE.MeshBasicMaterial({
-        color: this.doubleColors[color][this.getToggleByCoordinates(coords)]
-      });
-    }
+    boxMaterial = new THREE.MeshBasicMaterial({
+      color: this.getColorByCoordinates(coords)
+    });
     let cube = new THREE.Mesh(boxGeometry, boxMaterial);
     cube.position.set(
       coords.x * this.size + this.size / 2,
@@ -197,7 +193,7 @@ class PixelView extends View {
 
   getColorByCoordinates(coords) {
     if (this.layers == 1) {
-      return this.singleColors[this.matrix[coords.y][coords.x]];
+      return this.singleColors[this.getToggleByCoordinates(coords)];
     } else if (this.layers == 2) {
       if (coords.x % 2 == 0 && coords.y % 2 == 0) {
         return this.doubleColors[0][this.matrix[coords.y][coords.x]];
@@ -207,6 +203,26 @@ class PixelView extends View {
         return this.doubleColors[2][this.matrix[coords.y][coords.x]];
       } else if (coords.x % 2 == 1 && coords.y % 2 == 1) {
         return this.doubleColors[3][this.matrix[coords.y][coords.x]];
+      }
+    } else if (this.layers == 3) {
+      if (coords.x % 3 == 0 && coords.y % 3 == 0) {
+        return this.tripleColors[0][this.getToggleByCoordinates(coords)];
+      } else if (coords.x % 3 == 1 && coords.y % 3 == 0) {
+        return this.tripleColors[0][this.getToggleByCoordinates(coords)];
+      } else if (coords.x % 3 == 2 && coords.y % 3 == 0) {
+        return this.tripleColors[0][this.getToggleByCoordinates(coords)];
+      } else if (coords.x % 3 == 0 && coords.y % 3 == 1) {
+        return this.tripleColors[0][this.getToggleByCoordinates(coords)];
+      } else if (coords.x % 3 == 1 && coords.y % 3 == 1) {
+        return this.tripleColors[0][this.getToggleByCoordinates(coords)];
+      } else if (coords.x % 3 == 2 && coords.y % 3 == 1) {
+        return this.tripleColors[0][this.getToggleByCoordinates(coords)];
+      } else if (coords.x % 3 == 0 && coords.y % 3 == 2) {
+        return this.tripleColors[0][this.getToggleByCoordinates(coords)];
+      } else if (coords.x % 3 == 1 && coords.y % 3 == 2) {
+        return this.tripleColors[0][this.getToggleByCoordinates(coords)];
+      } else if (coords.x % 3 == 2 && coords.y % 3 == 2) {
+        return this.tripleColors[0][this.getToggleByCoordinates(coords)];
       }
     }
   }

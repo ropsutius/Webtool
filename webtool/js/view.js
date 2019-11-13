@@ -1,6 +1,10 @@
 class View {
   sceneMatrix = [];
   backgroundColor = 0xf5f5f5;
+  doubleOK = ["00", "10", "11"];
+  doubleBAD = ["01"];
+  tripleOK = ["000", "100", "110", "111"];
+  tripleBAD = ["011", "001", "101", "010"];
 
   constructor(canvas, options) {
     this.matrix = matrix;
@@ -62,63 +66,82 @@ class View {
   }
 
   getPreviousPointByCoordinates(coords) {
-    if (this.layers == 1) {
-      if (coords.y == 0) {
-        return null;
-      } else {
-        return { x: coords.x, y: coords.y - 1 };
-      }
-    } else if (this.layers == 2) {
-      if (coords.y == 0 || coords.y == 1) {
-        return null;
-      } else {
-        return { x: coords.x, y: coords.y - 2 };
-      }
-    }
+    return coords.y < this.layers
+      ? null
+      : { y: coords.y - this.layers, x: coords.x };
   }
 
   getNextPointByCoordinates(coords) {
-    if (this.layers == 1) {
-      if (coords.y == this.sides[0]) {
-        return null;
-      } else {
-        return { x: coords.x, y: coords.y + 1 };
-      }
-    } else if (this.layers == 2) {
-      if (coords.y == this.sides[0] - 1 || coords.y == this.sides[0] - 2) {
-        return null;
-      } else {
-        return { x: coords.x, y: coords.y + 2 };
+    return coords.y > this.sides[0] - this.layers - 1
+      ? null
+      : { y: coords.y + this.layers, x: coords.x };
+  }
+
+  getPrimePoint(coords) {
+    while (!this.isPrimePoint(coords)) {
+      coords = this.getRotationPointByCoordinates(coords);
+    }
+    return coords;
+  }
+
+  getRotationPointByCoordinates(coords) {
+    return coords.y % this.layers < this.layers - 1
+      ? { x: coords.x, y: coords.y + 1 }
+      : { x: coords.x, y: coords.y - this.layers + 1 };
+  }
+
+  getStartPoint(coords) {
+    if (this.isStartPoint(coords)) {
+      return coords;
+    } else {
+      let next = coords;
+      for (let i = 1; i < this.layers; i++) {
+        next = this.getRotationPointByCoordinates(next);
+        if (this.isStartPoint(next)) {
+          return next;
+        }
       }
     }
   }
 
-  getPairPointByCoordinates(coords) {
-    if (coords.y % 2 == 0) {
-      return { x: coords.x, y: coords.y + 1 };
-    } else {
-      return { x: coords.x, y: coords.y - 1 };
+  getHeightByCoordinates(coords) {
+    if (this.layers == 1) {
+      return this.getToggleByCoordinates(coords);
     }
+    let start = this.getStartPoint(coords);
+    let string = this.getToggleByCoordinates(start).toString();
+    let next = start;
+    for (let i = 1; i < this.layers; i++) {
+      next = this.getRotationPointByCoordinates(next);
+      string += this.getToggleByCoordinates(next).toString();
+    }
+    if (this.layers == 2) {
+      return this.doubleOK.includes(string)
+        ? this.doubleOK.indexOf(string)
+        : null;
+    } else if (this.layers == 3) {
+      return this.tripleOK.includes(string)
+        ? this.tripleOK.indexOf(string)
+        : null;
+    }
+  }
+
+  isStartPoint(coords) {
+    return coords.y % this.layers == 0 ? true : false;
   }
 
   isPrimePoint(coords) {
-    if (this.layers == 1) {
-      return true;
-    } else if (this.layers == 2) {
-      if (coords.y % 2 != coords.x % 2) {
-        return true;
-      }
-    }
-    return false;
+    return (coords.y % this.layers) + (coords.x % this.layers) ==
+      this.layers - 1
+      ? true
+      : false;
   }
 
   isEqualToPair(coords) {
-    if (
-      this.getToggleByCoordinates(coords) ==
-      this.getToggleByCoordinates(this.getPairPointByCoordinates(coords))
-    ) {
-      return true;
-    } else return false;
+    return this.getToggleByCoordinates(coords) ==
+      this.getToggleByCoordinates(this.getRotationPointByCoordinates(coords))
+      ? true
+      : false;
   }
 
   toggleByCoordinates(coords) {
@@ -136,6 +159,7 @@ class View {
       ) {
         return;
       }
+    } else if (this.layers == 3) {
     }
     if (this.getToggleByCoordinates(coords) == 0) {
       this.matrix[coords.y][coords.x] = 1;
@@ -145,6 +169,13 @@ class View {
     changed3D = coords;
     changedPixel = coords;
   }
+
+  // generatePermutations() {
+  //   for (let i = 0; i < Math.pow(2, this.layers); i++) {
+  //
+  //   }
+  //   return [];
+  // }
 
   onMouseMove(event) {
     this.mouse.x =
