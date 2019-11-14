@@ -1,7 +1,6 @@
 class ThreeDView extends View {
   warpColor = 0x4444ff;
   weftColor = 0x77cc77;
-  highlightColor = 0xcc4444;
   lightColor = 0x404040;
   warpLength = 4;
   weftLength = 2;
@@ -36,6 +35,13 @@ class ThreeDView extends View {
     } else {
       this.layerOffset = this.defaultLayerOffset;
     }
+
+    this.canvas.addEventListener(
+      "mousedown",
+      this.onMouseDown.bind(this),
+      false
+    );
+    this.canvas.addEventListener("click", this.onMouseClick.bind(this), false);
 
     this.initControls();
     this.initWeave();
@@ -130,6 +136,7 @@ class ThreeDView extends View {
     }
     if (curve == null) {
       curve = [new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 0)];
+      type = "Warp";
     }
     let tube = new THREE.TubeBufferGeometry(
       new THREE.CatmullRomCurve3(curve),
@@ -143,6 +150,7 @@ class ThreeDView extends View {
     if (curve == null) {
       mesh.visible = false;
     }
+    mesh.name = type;
     this.scene.add(mesh);
     return mesh.id;
   }
@@ -165,15 +173,44 @@ class ThreeDView extends View {
     }
   }
 
-  draw() {
-    if (changed3D != null) {
-      this.updateTube(changed3D);
+  resetTubeColor(coords) {
+    this.scene
+      .getObjectById(this.getId(coords))
+      .material.color.set(this.warpColor);
+  }
 
-      let next = this.getNextSet(changed3D);
+  draw() {
+    for (let i = 0; i < changed3D.length; i++) {
+      this.updateTube(changed3D[i]);
+
+      let next = this.getNextSet(changed3D[i]);
       if (next != null) {
         this.updateTube(next);
       }
-      changed3D = null;
+    }
+    changed3D = [];
+
+    for (let i = 0; i < this.previous.length; i++) {
+      this.resetTubeColor(this.previous[i]);
+    }
+    this.previous = [];
+
+    let intersects = this.getSetByMouse();
+    for (let i = 0; i < intersects.length; i++) {
+      let curr = intersects[i].object;
+      if (curr.name == "Warp") {
+        let currC = this.getCoordinatesById(curr.id);
+        let nextC = this.getNextSet(currC);
+        if (nextC != null) {
+          let next = this.scene.getObjectById(this.getId(nextC));
+          next.material.color.set(this.highlightColor[1]);
+          this.previous.push(nextC);
+        }
+
+        curr.material.color.set(this.highlightColor[1]);
+        this.previous.push(currC);
+        break;
+      }
     }
   }
 
@@ -227,6 +264,27 @@ class ThreeDView extends View {
     }
   }
 
+  onMouseDown(event) {
+    let intersects = this.getSetByMouse();
+    for (let i = 0; i < intersects.length; i++) {
+      if (intersects[i].object.type == "Mesh") {
+        this.clicked = intersects[i].object;
+        break;
+      }
+    }
+  }
+
+  onMouseClick(event) {
+    let intersects = this.getSetByMouse();
+    for (let i = 0; i < intersects.length; i++) {
+      let curr = intersects[i].object;
+      if (curr == this.clicked && curr.type == "Mesh") {
+        this.rotateToggle(this.getCoordinatesById(curr.id));
+        break;
+      }
+    }
+  }
+
   onWindowResize() {
     this.camera.aspect = this.canvas.offsetWidth / this.canvas.offsetHeight;
     this.camera.updateProjectionMatrix();
@@ -235,7 +293,11 @@ class ThreeDView extends View {
 
   reset() {
     this.sceneMatrix = [];
+
+    this.disposeHierarchy(this.scene);
     this.scene.dispose();
+    this.renderer.renderLists.dispose();
+
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(this.backgroundColor);
     this.matrix = matrix;

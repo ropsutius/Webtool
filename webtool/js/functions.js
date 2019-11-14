@@ -1,5 +1,5 @@
-let changed3D = null;
-let changedPixel = null;
+let changed3D = [];
+let changedPixel = [];
 let pv, tv, canvasP, canvas3d;
 let layerCount = 4;
 let matrix;
@@ -51,10 +51,6 @@ function loadLayer() {
   tv.layers = layerCount;
   pv.reset();
   tv.reset();
-
-  // canvas3d.removeChild(canvas3d.childNodes[0]);
-  // canvas3d = document.getElementById("3d-view");
-  // tv = new ThreeDView(canvas3d, { Layers: layerCount });
 }
 
 function exportTIFF() {

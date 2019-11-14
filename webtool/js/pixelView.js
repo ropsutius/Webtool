@@ -1,49 +1,33 @@
 class PixelView extends View {
-  clicked = false;
   pixelColors = [
-    { "00": [0xffffff, 0x303030] },
-    {
-      "00": [0xffffdd, 0x303030],
-      "01": [0xffdddd, 0x303030],
-      "10": [0xddddff, 0x303030],
-      "11": [0xddffdd, 0x303030]
-    },
-    {
-      "00": [0xffffdd, 0x303030],
-      "01": [0xffdddd, 0x303030],
-      "02": [0xddddff, 0x303030],
-      "10": [0xddffdd, 0x303030],
-      "11": [0xffffdd, 0x303030],
-      "12": [0xffdddd, 0x303030],
-      "20": [0xddddff, 0x303030],
-      "21": [0xddffdd, 0x303030],
-      "22": [0xffffdd, 0x303030]
-    },
-    {
-      "00": [0xffffdd, 0x303030],
-      "01": [0xffdddd, 0x303030],
-      "02": [0xffffdd, 0x303030],
-      "03": [0xffdddd, 0x303030],
-      "10": [0xddddff, 0x303030],
-      "11": [0xddffdd, 0x303030],
-      "12": [0xddddff, 0x303030],
-      "13": [0xddffdd, 0x303030],
-      "20": [0xffffdd, 0x303030],
-      "21": [0xffdddd, 0x303030],
-      "22": [0xffffdd, 0x303030],
-      "23": [0xffdddd, 0x303030],
-      "30": [0xddddff, 0x303030],
-      "31": [0xddffdd, 0x303030],
-      "32": [0xddddff, 0x303030],
-      "33": [0xddffdd, 0x303030]
-    }
+    [[[0xffffff, 0x303030]], [[0xffffff, 0x303030]]],
+    [
+      [[0xffffdd, 0x303030], [0xffdddd, 0x303030]],
+      [[0xddddff, 0x303030], [0xddffdd, 0x303030]]
+    ],
+    [
+      [[0xffffdd, 0x303030], [0xffdddd, 0x303030], [0xddffff, 0x303030]],
+      [[0xddddff, 0x303030], [0xddffdd, 0x303030], [0xffddff, 0x303030]]
+    ],
+    [
+      [
+        [0xffffdd, 0x303030],
+        [0xffdddd, 0x303030],
+        [0xffffdd, 0x303030],
+        [0xffdddd, 0x303030]
+      ],
+      [
+        [0xddddff, 0x303030],
+        [0xddffdd, 0x303030],
+        [0xddddff, 0x303030],
+        [0xddffdd, 0x303030]
+      ]
+    ]
   ];
   lineColor = 0x000000;
-  highlightColor = 0xcc4444;
   lineWidth = 1;
   size = 10;
   camFactor = 3;
-  previous = { y: 0, x: 0 };
   initCameraPos = {
     x: (this.sides[1] * this.size) / 2,
     y: -(this.sides[0] * this.size) / 2,
@@ -174,20 +158,24 @@ class PixelView extends View {
   }
 
   draw() {
-    if (changedPixel != null) {
-      this.updatePixel(changedPixel);
-      changedPixel = null;
+    for (let i = 0; i < changedPixel.length; i++) {
+      this.updatePixel(changedPixel[i]);
     }
+    changedPixel = [];
+    for (let i = 0; i < this.previous.length; i++) {
+      this.updatePixel(this.previous[i]);
+    }
+    this.previous = [];
 
-    this.updatePixel(this.previous);
-
-    this.raycaster.setFromCamera(this.mouse, this.camera);
-    let intersects = this.raycaster.intersectObjects(this.scene.children);
+    let intersects = this.getSetByMouse();
 
     for (let i = 0; i < intersects.length; i++) {
-      if (intersects[i].object.type == "Mesh") {
-        intersects[i].object.material.color.set(this.highlightColor);
-        this.previous = this.getCoordinatesById(intersects[i].object.id);
+      let curr = intersects[i].object;
+      if (curr.type == "Mesh") {
+        curr.material.color.set(
+          this.highlightColor[this.getToggleById(curr.id)]
+        );
+        this.previous.push(this.getCoordinatesById(curr.id));
         break;
       }
     }
@@ -212,9 +200,15 @@ class PixelView extends View {
   }
 
   getPixelColor(coords) {
-    let string =
-      (coords.y % this.layers).toString() + (coords.x % this.layers).toString();
-    return this.pixelColors[this.layers - 1][string][this.getToggle(coords)];
+    if (coords.y % this.layers < coords.y % (this.layers * 2)) {
+      return this.pixelColors[this.layers - 1][1][coords.x % this.layers][
+        this.getToggle(coords)
+      ];
+    } else {
+      return this.pixelColors[this.layers - 1][0][coords.x % this.layers][
+        this.getToggle(coords)
+      ];
+    }
   }
 
   onMouseDown(event) {
@@ -233,15 +227,9 @@ class PixelView extends View {
     this.raycaster.setFromCamera(this.mouse, this.camera);
     let intersects = this.raycaster.intersectObjects(this.scene.children);
     for (let i = 0; i < intersects.length; i++) {
-      let square = intersects[i].object;
-      if (square == this.clicked && square.type == "Mesh") {
-        for (let k = 0; k < this.sides[0]; k++) {
-          let index = this.sceneMatrix[k].indexOf(square.id);
-          if (index > -1) {
-            this.toggle({ y: k, x: index });
-            break;
-          }
-        }
+      let curr = intersects[i].object;
+      if (curr == this.clicked && curr.type == "Mesh") {
+        this.rotateToggle(this.getCoordinatesById(curr.id));
         break;
       }
     }
@@ -262,7 +250,10 @@ class PixelView extends View {
     this.clicked = false;
     this.previous = { x: 0, y: 0 };
 
+    this.disposeHierarchy(this.scene);
     this.scene.dispose();
+    this.renderer.renderLists.dispose();
+
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(this.backgroundColor);
     this.matrix = matrix;
