@@ -1,29 +1,14 @@
 class PixelView extends View {
-  pixelColors = [
-    [[[0xffffff, 0x303030]], [[0xffffff, 0x303030]]],
-    [
-      [[0xffffdd, 0x303030], [0xffdddd, 0x303030]],
-      [[0xddddff, 0x303030], [0xddffdd, 0x303030]]
-    ],
-    [
-      [[0xffffdd, 0x303030], [0xffdddd, 0x303030], [0xddffff, 0x303030]],
-      [[0xddddff, 0x303030], [0xddffdd, 0x303030], [0xffddff, 0x303030]]
-    ],
-    [
-      [
-        [0xffffdd, 0x303030],
-        [0xffdddd, 0x303030],
-        [0xffffdd, 0x303030],
-        [0xffdddd, 0x303030]
-      ],
-      [
-        [0xddddff, 0x303030],
-        [0xddffdd, 0x303030],
-        [0xddddff, 0x303030],
-        [0xddffdd, 0x303030]
-      ]
-    ]
+  canvasColors = [
+    0xffffdd,
+    0xffdddd,
+    0xddddff,
+    0xddffdd,
+    0xddffff,
+    0xffddff,
+    0x303030
   ];
+  pixelColors = [];
   lineColor = 0x000000;
   lineWidth = 1;
   size = 10;
@@ -44,8 +29,23 @@ class PixelView extends View {
     );
     this.canvas.addEventListener("click", this.onMouseClick.bind(this), false);
 
+    this.initPixelColors();
     this.initControls();
     this.initGrid();
+  }
+
+  initPixelColors() {
+    this.pixelColors = [[], []];
+    for (let i = 0; i < (this.layers - (this.layers % 2)) / 2; i++) {
+      this.pixelColors[0].push([this.canvasColors[0], this.canvasColors[6]]);
+      this.pixelColors[0].push([this.canvasColors[1], this.canvasColors[6]]);
+      this.pixelColors[1].push([this.canvasColors[2], this.canvasColors[6]]);
+      this.pixelColors[1].push([this.canvasColors[3], this.canvasColors[6]]);
+    }
+    if (this.layers % 2 == 1) {
+      this.pixelColors[0].push([this.canvasColors[4], this.canvasColors[6]]);
+      this.pixelColors[1].push([this.canvasColors[5], this.canvasColors[6]]);
+    }
   }
 
   initControls() {
@@ -201,11 +201,11 @@ class PixelView extends View {
 
   getPixelColor(coords) {
     if (coords.y % this.layers < coords.y % (this.layers * 2)) {
-      return this.pixelColors[this.layers - 1][1][coords.x % this.layers][
+      return this.pixelColors[1][coords.x % this.layers][
         this.getToggle(coords)
       ];
     } else {
-      return this.pixelColors[this.layers - 1][0][coords.x % this.layers][
+      return this.pixelColors[0][coords.x % this.layers][
         this.getToggle(coords)
       ];
     }
