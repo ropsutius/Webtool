@@ -1,7 +1,7 @@
 let changed3D = [];
 let changedPixel = [];
 let pv, tv, canvasP, canvas3d;
-let layerCount = 4;
+let layerCount = 2;
 let matrix;
 if (layerCount == 1) {
   matrix = plain_single;
