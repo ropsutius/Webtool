@@ -12,14 +12,13 @@ class View {
   clicked = false;
 
   constructor(canvas, options) {
-    this.matrix = matrix;
-    this.sides = [this.matrix.length, this.matrix[0].length];
-
     if ("Layers" in options) {
       this.layers = options.Layers;
     } else {
       this.layers = 1;
     }
+
+    this.matrix = new Matrix({ Layers: this.layers }, matrix);
 
     this.canvas = canvas;
     this.scene = new THREE.Scene();
@@ -46,30 +45,6 @@ class View {
     this.renderer.render(this.scene, this.camera);
   }
 
-  getCoordinatesById(id) {
-    for (let i = 0; i < this.sides[0]; i++) {
-      let index = this.sceneMatrix[i].indexOf(id);
-      if (index > -1) {
-        return { y: i, x: index };
-      }
-    }
-    return null;
-  }
-
-  getId(coords) {
-    return this.sceneMatrix[coords.y][coords.x] === undefined
-      ? null
-      : this.sceneMatrix[coords.y][coords.x];
-  }
-
-  getToggle(coords) {
-    return this.matrix[coords.y][coords.x];
-  }
-
-  getToggleById(id) {
-    return this.getToggle(this.getCoordinatesById(id));
-  }
-
   getPreviousSet(coords) {
     return coords.y < this.layers
       ? null
@@ -77,7 +52,7 @@ class View {
   }
 
   getNextSet(coords) {
-    return coords.y > this.sides[0] - this.layers - 1
+    return coords.y > this.matrix.y - this.layers - 1
       ? null
       : { y: coords.y + this.layers, x: coords.x };
   }
@@ -138,10 +113,10 @@ class View {
 
   getSetString(coords) {
     let point = this.getStartPoint(coords);
-    let string = this.getToggle(point).toString();
+    let string = this.matrix.getToggle(point).toString();
     for (let i = 1; i < this.layers; i++) {
       point = this.getNextPointInSet(point);
-      string += this.getToggle(point).toString();
+      string += this.matrix.getToggle(point).toString();
     }
     return string;
   }
@@ -167,50 +142,13 @@ class View {
   }
 
   isEqualToPair(coords) {
-    return this.getToggle(coords) ==
-      this.getToggle(this.getNextPointInSet(coords))
+    return this.matrix.getToggle(coords) ==
+      this.matrix.getToggle(this.getNextPointInSet(coords))
       ? true
       : false;
   }
 
   isRealSet(coords) {}
-
-  toggle(coords) {
-    if (this.getToggle(coords) == 0) {
-      this.matrix[coords.y][coords.x] = 1;
-    } else {
-      this.matrix[coords.y][coords.x] = 0;
-    }
-    let string = this.getSetString(coords);
-    if (!this.okList[this.layers - 1].includes(string)) {
-      if (this.getToggle(coords) == 0) {
-        this.matrix[coords.y][coords.x] = 1;
-      } else {
-        this.matrix[coords.y][coords.x] = 0;
-      }
-    } else {
-      changed3D.push(coords);
-      changedPixel.push(coords);
-    }
-  }
-
-  rotateToggle(coords) {
-    let point = this.getStartPoint(coords);
-    for (let i = 0; i < this.layers; i++) {
-      if (this.getToggle(point) == 0) {
-        this.toggle(point);
-        return;
-      }
-      point = this.getNextPointInSet(point);
-    }
-    point = this.getPreviousPointInSet(point);
-    for (let i = 0; i < this.layers; i++) {
-      if (this.getToggle(point) == 1) {
-        this.toggle(point);
-      }
-      point = this.getPreviousPointInSet(point);
-    }
-  }
 
   // TODO:
   generatePermutations() {}
@@ -223,6 +161,35 @@ class View {
       -((event.clientY - this.canvas.offsetTop) / this.canvas.offsetHeight) *
         2 +
       1;
+  }
+
+  toggle(coords) {
+    this.matrix.toggle(coords);
+    let string = this.getSetString(coords);
+    if (!this.okList[this.layers - 1].includes(string)) {
+      this.matrix.toggle(coords);
+    } else {
+      changed3D.push(coords);
+      changedPixel.push(coords);
+    }
+  }
+
+  rotateToggle(coords) {
+    let point = this.getStartPoint(coords);
+    for (let i = 0; i < this.layers; i++) {
+      if (this.matrix.getToggle(point) == 0) {
+        this.toggle(point);
+        return;
+      }
+      point = this.getNextPointInSet(point);
+    }
+    point = this.getPreviousPointInSet(point);
+    for (let i = 0; i < this.layers; i++) {
+      if (this.matrix.getToggle(point) == 1) {
+        this.toggle(point);
+      }
+      point = this.getPreviousPointInSet(point);
+    }
   }
 
   disposeNode(node) {

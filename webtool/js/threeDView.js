@@ -15,26 +15,10 @@ class ThreeDView extends View {
   r = 1;
   tubeSegments = 32;
   radialSegments = 8;
-  initCameraPos = {
-    x: (this.sides[1] * this.weftLength) / 2 / this.layers,
-    y: 0,
-    z: (this.sides[0] * this.warpLength) / 2 / this.layers
-  };
-  cameraOffset = {
-    x: 0,
-    y: this.warpHeight * this.layers * 10,
-    z: this.sides[0] * this.warpLength
-  };
-  defaultLayerOffset = 5;
+  layerOffset = 5;
 
   constructor(canvas, options) {
     super(canvas, options);
-
-    if (options.Layers == 1) {
-      this.layerOffset = 0;
-    } else {
-      this.layerOffset = this.defaultLayerOffset;
-    }
 
     this.canvas.addEventListener(
       "mousedown",
@@ -48,6 +32,17 @@ class ThreeDView extends View {
   }
 
   initControls() {
+    this.initCameraPos = {
+      x: (this.matrix.x * this.weftLength) / 2 / this.layers,
+      y: 0,
+      z: (this.matrix.y * this.warpLength) / 2 / this.layers
+    };
+    this.cameraOffset = {
+      x: 0,
+      y: this.warpHeight * this.layers * 10,
+      z: this.matrix.y * this.warpLength
+    };
+
     this.camera = new THREE.PerspectiveCamera(
       45,
       this.canvas.offsetWidth / this.canvas.offsetHeight,
@@ -84,17 +79,14 @@ class ThreeDView extends View {
     this.scene.add(light);
 
     let curve;
-    for (let i = 0; i < this.sides[1]; i++) {
-      for (let k = 0; k < this.sides[0]; k++) {
-        if (i == 0) {
-          this.sceneMatrix[k] = [];
-        }
+    for (let i = 0; i < this.matrix.x; i++) {
+      for (let k = 0; k < this.matrix.y; k++) {
         if (!this.isPrimePoint({ y: k, x: i })) {
           continue;
         }
         curve = this.getWarpPoints({ y: k, x: i });
         let id = this.addTubeToScene(curve, "Warp");
-        this.sceneMatrix[k][i] = id;
+        this.matrix.addIdToSceneMatrix({ y: k, x: i }, id);
       }
     }
 
@@ -111,10 +103,10 @@ class ThreeDView extends View {
 
   *getWeftPoints() {
     let x, y, z;
-    for (let i = 0; i < this.sides[0]; i++) {
+    for (let i = 0; i < this.matrix.y; i++) {
       x = [
         -this.r * 2,
-        ((this.sides[1] - 1) * this.weftLength) / this.layers + this.r
+        ((this.matrix.x - 1) * this.weftLength) / this.layers + this.r
       ];
       y =
         this.warpHeight * (i % this.layers) +
@@ -157,7 +149,7 @@ class ThreeDView extends View {
 
   updateTube(coords) {
     coords = this.getPrimePoint(coords);
-    let object = this.scene.getObjectById(this.getId(coords));
+    let object = this.scene.getObjectById(this.matrix.getId(coords));
     let curve = this.getWarpPoints(coords);
     if (curve != null) {
       object.geometry.copy(
@@ -175,7 +167,7 @@ class ThreeDView extends View {
 
   resetTubeColor(coords) {
     this.scene
-      .getObjectById(this.getId(coords))
+      .getObjectById(this.matrix.getId(coords))
       .material.color.set(this.warpColor);
   }
 
@@ -199,10 +191,10 @@ class ThreeDView extends View {
     for (let i = 0; i < intersects.length; i++) {
       let curr = intersects[i].object;
       if (curr.name == "Warp") {
-        let currC = this.getCoordinatesById(curr.id);
+        let currC = this.matrix.getCoordinatesById(curr.id);
         let nextC = this.getNextSet(currC);
         if (nextC != null) {
-          let next = this.scene.getObjectById(this.getId(nextC));
+          let next = this.scene.getObjectById(this.matrix.getId(nextC));
           next.material.color.set(this.highlightColor[1]);
           this.previous.push(nextC);
         }
@@ -279,7 +271,7 @@ class ThreeDView extends View {
     for (let i = 0; i < intersects.length; i++) {
       let curr = intersects[i].object;
       if (curr == this.clicked && curr.type == "Mesh") {
-        this.rotateToggle(this.getCoordinatesById(curr.id));
+        this.rotateToggle(this.matrix.getCoordinatesById(curr.id));
         break;
       }
     }
@@ -291,21 +283,18 @@ class ThreeDView extends View {
     this.renderer.setSize(this.canvas.offsetWidth, this.canvas.offsetHeight);
   }
 
-  reset() {
-    this.sceneMatrix = [];
+  reset(options, matrix = []) {
+    this.layers = options.Layers;
+    this.previous = [];
 
     this.disposeHierarchy(this.scene);
     this.scene.dispose();
     this.renderer.renderLists.dispose();
-
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(this.backgroundColor);
-    this.matrix = matrix;
-    if (this.layers == 1) {
-      this.layerOffset = 0;
-    } else {
-      this.layerOffset = this.defaultLayerOffset;
-    }
+
+    this.matrix.reset(options, matrix);
+    this.initControls();
     this.initWeave();
   }
 }

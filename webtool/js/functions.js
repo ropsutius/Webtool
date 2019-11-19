@@ -36,21 +36,39 @@ function toDualView() {
   tv.onWindowResize();
 }
 
-function loadLayer() {
-  if (layerCount == 1) {
-    layerCount = 2;
-  } else if (layerCount == 2) {
-    layerCount = 3;
-  } else if (layerCount == 3) {
-    layerCount = 4;
-  } else if (layerCount == 4) {
-    layerCount = 1;
+function openNew() {
+  document.getElementById("modal").style.display = "block";
+}
+
+function closeNew() {
+  document.getElementById("modal").style.display = "none";
+}
+
+function createNewCanvas() {
+  let weave = document.getElementById("weave").value;
+  let width = parseInt(document.getElementById("width").value);
+  let height = parseInt(document.getElementById("height").value);
+  let layers = parseInt(document.getElementById("layers").value);
+
+  closeNew();
+
+  if (width % layers != 0 || height % layers != 0) {
+    alert("Canvas dimensions must match layers");
+    return;
   }
 
-  pv.layers = layerCount;
-  tv.layers = layerCount;
-  pv.reset();
-  tv.reset();
+  pv.reset({ Layers: layers, Width: width, Height: height, Weave: weave });
+  tv.reset({ Layers: layers, Width: width, Height: height, Weave: weave });
+}
+
+function loadLayer() {
+  if (pv.layers == 4) {
+    pv.reset({ Layers: 1 });
+    tv.reset({ Layers: 1 });
+  } else {
+    pv.reset({ Layers: pv.layers + 1 });
+    tv.reset({ Layers: tv.layers + 1 });
+  }
 }
 
 function exportTIFF() {

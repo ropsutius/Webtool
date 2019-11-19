@@ -13,11 +13,6 @@ class PixelView extends View {
   lineWidth = 1;
   size = 10;
   camFactor = 3;
-  initCameraPos = {
-    x: (this.sides[1] * this.size) / 2,
-    y: -(this.sides[0] * this.size) / 2,
-    z: 100
-  };
 
   constructor(canvas, options) {
     super(canvas, options);
@@ -35,6 +30,13 @@ class PixelView extends View {
   }
 
   initPixelColors() {
+    if (this.layers == 1) {
+      this.pixelColors = [
+        [[0xffffff, 0x303030], [0xffffff, 0x303030]],
+        [[0xffffff, 0x303030], [0xffffff, 0x303030]]
+      ];
+      return;
+    }
     this.pixelColors = [[], []];
     for (let i = 0; i < (this.layers - (this.layers % 2)) / 2; i++) {
       this.pixelColors[0].push([this.canvasColors[0], this.canvasColors[6]]);
@@ -49,6 +51,11 @@ class PixelView extends View {
   }
 
   initControls() {
+    this.initCameraPos = {
+      x: (this.matrix.x * this.size) / 2,
+      y: -(this.matrix.y * this.size) / 2,
+      z: 100
+    };
     this.camera = new THREE.OrthographicCamera(
       this.canvas.offsetWidth / -this.camFactor,
       this.canvas.offsetWidth / this.camFactor,
@@ -82,32 +89,29 @@ class PixelView extends View {
   }
 
   initGrid() {
-    let boxGeometry, boxMaterial;
-    let lineGridGeometry, lineGridMaterial;
-    let lineBorderGeometry, lineBorderMaterial;
-
-    let cube;
-    for (let i = 0; i < this.sides[0]; i++) {
+    let cube, id, point;
+    for (let i = 0; i < this.matrix.y; i++) {
       let sceneRow = [];
-      for (let k = 0; k < this.sides[1]; k++) {
-        sceneRow[k] = this.addPixelToScene({ y: i, x: k });
+      for (let k = 0; k < this.matrix.x; k++) {
+        point = { y: i, x: k };
+        id = this.addPixelToScene(point);
+        this.matrix.addIdToSceneMatrix(point, id);
       }
-      this.sceneMatrix[i] = sceneRow;
     }
 
     let lineGrid;
-    for (let i = 1; i < this.sides[0]; i++) {
+    for (let i = 1; i < this.matrix.y; i++) {
       this.addLineToSceneByPosition(i, this.lineWidth);
     }
-    for (let i = 1; i < this.sides[1]; i++) {
+    for (let i = 1; i < this.matrix.x; i++) {
       this.addLineToSceneByPosition(i, this.lineWidth, "Vertical");
     }
 
     this.addLineToSceneByPosition(0, this.lineWidth * 5);
-    this.addLineToSceneByPosition(this.sides[0], this.lineWidth * 5);
+    this.addLineToSceneByPosition(this.matrix.y, this.lineWidth * 5);
     this.addLineToSceneByPosition(0, this.lineWidth * 5, "Vertical");
     this.addLineToSceneByPosition(
-      this.sides[1],
+      this.matrix.x,
       this.lineWidth * 5,
       "Vertical"
     );
@@ -120,11 +124,11 @@ class PixelView extends View {
     geometry.vertices.push(new THREE.Vector3(0, 0, 0));
     if (dir == "Horizontal") {
       geometry.vertices.push(
-        new THREE.Vector3(this.size * this.sides[1], 0, 0)
+        new THREE.Vector3(this.size * this.matrix.x, 0, 0)
       );
     } else if (dir == "Vertical") {
       geometry.vertices.push(
-        new THREE.Vector3(0, -this.size * this.sides[0], 0)
+        new THREE.Vector3(0, -this.size * this.matrix.y, 0)
       );
     }
 
@@ -173,9 +177,9 @@ class PixelView extends View {
       let curr = intersects[i].object;
       if (curr.type == "Mesh") {
         curr.material.color.set(
-          this.highlightColor[this.getToggleById(curr.id)]
+          this.highlightColor[this.matrix.getToggleById(curr.id)]
         );
-        this.previous.push(this.getCoordinatesById(curr.id));
+        this.previous.push(this.matrix.getCoordinatesById(curr.id));
         break;
       }
     }
@@ -183,7 +187,7 @@ class PixelView extends View {
 
   updatePixel(coords) {
     this.scene
-      .getObjectById(this.getId(coords))
+      .getObjectById(this.matrix.getId(coords))
       .material.color.set(this.getPixelColor(coords));
   }
 
@@ -196,17 +200,17 @@ class PixelView extends View {
   }
 
   getPixelColorById(id) {
-    return this.getPixelColor(this.getCoordinatesById(id));
+    return this.getPixelColor(this.matrix.getCoordinatesById(id));
   }
 
   getPixelColor(coords) {
     if (coords.y % this.layers < coords.y % (this.layers * 2)) {
       return this.pixelColors[1][coords.x % this.layers][
-        this.getToggle(coords)
+        this.matrix.getToggle(coords)
       ];
     } else {
       return this.pixelColors[0][coords.x % this.layers][
-        this.getToggle(coords)
+        this.matrix.getToggle(coords)
       ];
     }
   }
@@ -229,7 +233,7 @@ class PixelView extends View {
     for (let i = 0; i < intersects.length; i++) {
       let curr = intersects[i].object;
       if (curr == this.clicked && curr.type == "Mesh") {
-        this.rotateToggle(this.getCoordinatesById(curr.id));
+        this.rotateToggle(this.matrix.getCoordinatesById(curr.id));
         break;
       }
     }
@@ -245,18 +249,20 @@ class PixelView extends View {
     this.renderer.setSize(this.canvas.offsetWidth, this.canvas.offsetHeight);
   }
 
-  reset() {
-    this.sceneMatrix = [];
-    this.clicked = false;
-    this.previous = { x: 0, y: 0 };
+  reset(options, matrix) {
+    this.layers = options.Layers;
+    this.previous = [];
 
     this.disposeHierarchy(this.scene);
     this.scene.dispose();
     this.renderer.renderLists.dispose();
-
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(this.backgroundColor);
-    this.matrix = matrix;
+
+    this.matrix.reset(options, matrix);
+
+    this.initPixelColors();
+    this.initControls();
     this.initGrid();
   }
 }

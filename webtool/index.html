@@ -7,6 +7,7 @@
     <script src="js/OrbitControls.js"></script>
     <script src="js/weaves.js"></script>
     <script src="js/functions.js"></script>
+    <script src="js/matrix.js"></script>
     <script src="js/view.js"></script>
     <script src="js/pixelView.js"></script>
     <script src="js/threeDView.js"></script>
@@ -15,14 +16,65 @@
     <title>Webtool</title>
   </head>
   <body>
+    <div id="modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <span class="close" onclick="closeNew()">&times;</span>
+          <h2>Create New Canvas</h2>
+        </div>
+        <div class="modal-body">
+          <form>
+            <select name="layers" id="layers">
+              <option value="1" selected>Single</option>
+              <option value="2">Double</option>
+              <option value="3">Triple</option>
+              <option value="4">Quadruple</option>
+            </select>
+            <br />
+            <select name="weave" id="weave">
+              <option value="plain" selected>Plain weave</option>
+            </select>
+            <br />
+            <input
+              id="width"
+              type="number"
+              name="width"
+              min="1"
+              max="1000"
+              value="10"
+              required
+            />
+            <input
+              id="height"
+              type="number"
+              name="height"
+              min="1"
+              max="1000"
+              value="10"
+              required
+            />
+            <br />
+            <button type="button" class="btn" onclick="createNewCanvas()">
+              Create Canvas
+            </button>
+            <button type="button" class="btn" onclick="closeNew()">
+              Cancel
+            </button>
+          </form>
+        </div>
+        <div class="modal-footer"><h3>Modal Footer</h3></div>
+      </div>
+    </div>
+
     <div class="navbar">
       <div class="dropdown">
         <button class="dropbtn">File</button>
         <div class="dropdown-content">
-          <a href="#">New (N/A)</a> <a href="#">Open (N/A)</a>
+          <a onclick="openNew()">New</a> <a href="#">Open (N/A)</a>
           <a href="#">Save (N/A)</a><a onclick="exportTIFF()">Export</a>
         </div>
       </div>
+
       <div class="dropdown">
         <button class="dropbtn">Edit</button>
         <div class="dropdown-content">
@@ -31,6 +83,7 @@
           <a href="#">Paste (N/A)</a> <a onclick="loadLayer()">Layers</a>
         </div>
       </div>
+
       <div class="dropdown">
         <button class="dropbtn">View</button>
         <div class="dropdown-content">
@@ -40,6 +93,7 @@
         </div>
       </div>
     </div>
+
     <div class="toolbar"><a href="#">P</a> <a href="#">M</a></div>
 
     <div id="3d-view" class="webgl-content"></div>
