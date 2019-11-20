@@ -17,8 +17,8 @@ class ThreeDView extends View {
   radialSegments = 8;
   layerOffset = 5;
 
-  constructor(canvas, options) {
-    super(canvas, options);
+  constructor(app, canvas) {
+    super(app, canvas);
 
     this.canvas.addEventListener(
       "mousedown",
@@ -81,12 +81,15 @@ class ThreeDView extends View {
     let curve;
     for (let i = 0; i < this.matrix.x; i++) {
       for (let k = 0; k < this.matrix.y; k++) {
+        if (i == 0) {
+          this.sceneMatrix[k] = [];
+        }
         if (!this.isPrimePoint({ y: k, x: i })) {
           continue;
         }
         curve = this.getWarpPoints({ y: k, x: i });
         let id = this.addTubeToScene(curve, "Warp");
-        this.matrix.addIdToSceneMatrix({ y: k, x: i }, id);
+        this.sceneMatrix[k][i] = id;
       }
     }
 
@@ -149,7 +152,9 @@ class ThreeDView extends View {
 
   updateTube(coords) {
     coords = this.getPrimePoint(coords);
-    let object = this.scene.getObjectById(this.matrix.getId(coords));
+    let object = this.scene.getObjectById(
+      this.matrix.getId(coords, this.sceneMatrix)
+    );
     let curve = this.getWarpPoints(coords);
     if (curve != null) {
       object.geometry.copy(
@@ -167,20 +172,20 @@ class ThreeDView extends View {
 
   resetTubeColor(coords) {
     this.scene
-      .getObjectById(this.matrix.getId(coords))
+      .getObjectById(this.matrix.getId(coords, this.sceneMatrix))
       .material.color.set(this.warpColor);
   }
 
   draw() {
-    for (let i = 0; i < changed3D.length; i++) {
-      this.updateTube(changed3D[i]);
+    for (let i = 0; i < this.app.changed3D.length; i++) {
+      this.updateTube(this.app.changed3D[i]);
 
-      let next = this.getNextSet(changed3D[i]);
+      let next = this.getNextSet(this.app.changed3D[i]);
       if (next != null) {
         this.updateTube(next);
       }
     }
-    changed3D = [];
+    this.app.changed3D = [];
 
     for (let i = 0; i < this.previous.length; i++) {
       this.resetTubeColor(this.previous[i]);
@@ -191,10 +196,12 @@ class ThreeDView extends View {
     for (let i = 0; i < intersects.length; i++) {
       let curr = intersects[i].object;
       if (curr.name == "Warp") {
-        let currC = this.matrix.getCoordinatesById(curr.id);
+        let currC = this.matrix.getCoordinatesById(curr.id, this.sceneMatrix);
         let nextC = this.getNextSet(currC);
         if (nextC != null) {
-          let next = this.scene.getObjectById(this.matrix.getId(nextC));
+          let next = this.scene.getObjectById(
+            this.matrix.getId(nextC, this.sceneMatrix)
+          );
           next.material.color.set(this.highlightColor[1]);
           this.previous.push(nextC);
         }
@@ -271,7 +278,9 @@ class ThreeDView extends View {
     for (let i = 0; i < intersects.length; i++) {
       let curr = intersects[i].object;
       if (curr == this.clicked && curr.type == "Mesh") {
-        this.rotateToggle(this.matrix.getCoordinatesById(curr.id));
+        this.rotateToggle(
+          this.matrix.getCoordinatesById(curr.id, this.sceneMatrix)
+        );
         break;
       }
     }

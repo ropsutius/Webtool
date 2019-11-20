@@ -14,8 +14,8 @@ class PixelView extends View {
   size = 10;
   camFactor = 3;
 
-  constructor(canvas, options) {
-    super(canvas, options);
+  constructor(app, canvas) {
+    super(app, canvas);
 
     this.canvas.addEventListener(
       "mousedown",
@@ -89,13 +89,11 @@ class PixelView extends View {
   }
 
   initGrid() {
-    let cube, id, point;
+    let id, point;
     for (let i = 0; i < this.matrix.y; i++) {
-      let sceneRow = [];
+      this.sceneMatrix[i] = [];
       for (let k = 0; k < this.matrix.x; k++) {
-        point = { y: i, x: k };
-        id = this.addPixelToScene(point);
-        this.matrix.addIdToSceneMatrix(point, id);
+        this.sceneMatrix[i][k] = this.addPixelToScene(point);
       }
     }
 
@@ -162,10 +160,11 @@ class PixelView extends View {
   }
 
   draw() {
-    for (let i = 0; i < changedPixel.length; i++) {
-      this.updatePixel(changedPixel[i]);
+    for (let i = 0; i < this.app.changedPixel.length; i++) {
+      this.updatePixel(this.app.changedPixel[i]);
     }
-    changedPixel = [];
+    this.app.changedPixel = [];
+
     for (let i = 0; i < this.previous.length; i++) {
       this.updatePixel(this.previous[i]);
     }
@@ -187,7 +186,7 @@ class PixelView extends View {
 
   updatePixel(coords) {
     this.scene
-      .getObjectById(this.matrix.getId(coords))
+      .getObjectById(this.matrix.getId(coords, this.sceneMatrix))
       .material.color.set(this.getPixelColor(coords));
   }
 

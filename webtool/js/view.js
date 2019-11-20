@@ -1,6 +1,6 @@
 class View {
-  sceneMatrix = [];
-  backgroundColor = 0xf5f5f5;
+  backgroundColor = 0xffffff;
+  // 0xf5f5f5;
   highlightColor = [0xee9999, 0xcc4444];
   okList = [
     ["0", "1"],
@@ -10,15 +10,12 @@ class View {
   ];
   previous = [];
   clicked = false;
+  sceneMatrix = [];
 
-  constructor(canvas, options) {
-    if ("Layers" in options) {
-      this.layers = options.Layers;
-    } else {
-      this.layers = 1;
-    }
-
-    this.matrix = new Matrix({ Layers: this.layers }, matrix);
+  constructor(app, canvas) {
+    this.app = app;
+    this.layers = this.app.layers;
+    this.matrix = this.app.matrix;
 
     this.canvas = canvas;
     this.scene = new THREE.Scene();
@@ -169,8 +166,8 @@ class View {
     if (!this.okList[this.layers - 1].includes(string)) {
       this.matrix.toggle(coords);
     } else {
-      changed3D.push(coords);
-      changedPixel.push(coords);
+      this.app.changed3D.push(coords);
+      this.app.changedPixel.push(coords);
     }
   }
 

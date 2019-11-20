@@ -1,11 +1,10 @@
 class Matrix {
   matrix;
-  sceneMatrix = [];
-  layers;
   x;
   y;
-  constructor(options, matrix = []) {
-    this.layers = options.Layers;
+  constructor(app, options, matrix = []) {
+    this.app = app;
+    this.layers = this.app.layers;
 
     if (matrix.length > 0) {
       this.setMatrix(matrix);
@@ -29,7 +28,7 @@ class Matrix {
     }
   }
 
-  setMatrix() {
+  setMatrix(matrix) {
     if (this.testMatrix(matrix)) {
       this.matrix = matrix;
       this.x = this.matrix[0].length;
@@ -49,13 +48,6 @@ class Matrix {
     } else return false;
   }
 
-  addIdToSceneMatrix(coords, id) {
-    while (coords.y > this.sceneMatrix.length - 1) {
-      this.sceneMatrix.push([]);
-    }
-    this.sceneMatrix[coords.y][coords.x] = id;
-  }
-
   getToggle(coords) {
     return this.matrix[coords.y][coords.x];
   }
@@ -64,15 +56,15 @@ class Matrix {
     return this.getToggle(this.getCoordinatesById(id));
   }
 
-  getId(coords) {
-    return this.sceneMatrix[coords.y][coords.x] === undefined
+  getId(coords, sceneMatrix) {
+    return sceneMatrix[coords.y][coords.x] === undefined
       ? null
-      : this.sceneMatrix[coords.y][coords.x];
+      : sceneMatrix[coords.y][coords.x];
   }
 
-  getCoordinatesById(id) {
+  getCoordinatesById(id, sceneMatrix) {
     for (let i = 0; i < this.y; i++) {
-      let index = this.sceneMatrix[i].indexOf(id);
+      let index = sceneMatrix[i].indexOf(id);
       if (index > -1) {
         return { y: i, x: index };
       }

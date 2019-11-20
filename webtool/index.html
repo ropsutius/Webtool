@@ -6,11 +6,11 @@
     <script src="js/three.js"></script>
     <script src="js/OrbitControls.js"></script>
     <script src="js/weaves.js"></script>
-    <script src="js/functions.js"></script>
-    <script src="js/matrix.js"></script>
-    <script src="js/view.js"></script>
-    <script src="js/pixelView.js"></script>
-    <script src="js/threeDView.js"></script>
+    <script src="js/Application.js"></script>
+    <script src="js/Matrix.js"></script>
+    <script src="js/View.js"></script>
+    <script src="js/PixelView.js"></script>
+    <script src="js/ThreeDView.js"></script>
     <script src="js/main.js"></script>
     <link rel="stylesheet" href="style.css" />
     <title>Webtool</title>
@@ -19,7 +19,7 @@
     <div id="modal" class="modal">
       <div class="modal-content">
         <div class="modal-header">
-          <span class="close" onclick="closeNew()">&times;</span>
+          <span class="close" onclick="app.closeNew()">&times;</span>
           <h2>Create New Canvas</h2>
         </div>
         <div class="modal-body">
@@ -35,6 +35,7 @@
               <option value="plain" selected>Plain weave</option>
             </select>
             <br />
+            <label for="width">Width:</label>
             <input
               id="width"
               type="number"
@@ -44,6 +45,7 @@
               value="10"
               required
             />
+            <label for="height">Height:</label>
             <input
               id="height"
               type="number"
@@ -54,15 +56,14 @@
               required
             />
             <br />
-            <button type="button" class="btn" onclick="createNewCanvas()">
+            <button type="button" class="btn" onclick="app.createNewCanvas()">
               Create Canvas
             </button>
-            <button type="button" class="btn" onclick="closeNew()">
+            <button type="button" class="btn" onclick="app.closeNew()">
               Cancel
             </button>
           </form>
         </div>
-        <div class="modal-footer"><h3>Modal Footer</h3></div>
       </div>
     </div>
 
@@ -70,8 +71,8 @@
       <div class="dropdown">
         <button class="dropbtn">File</button>
         <div class="dropdown-content">
-          <a onclick="openNew()">New</a> <a href="#">Open (N/A)</a>
-          <a href="#">Save (N/A)</a><a onclick="exportTIFF()">Export</a>
+          <a onclick="app.openNew()">New</a> <a href="#">Open (N/A)</a>
+          <a href="#">Save (N/A)</a><a onclick="app.exportTIFF()">Export</a>
         </div>
       </div>
 
@@ -80,23 +81,23 @@
         <div class="dropdown-content">
           <a href="#">Undo (N/A)</a> <a href="#">Redo (N/A)</a>
           <a href="#">Copy (N/A)</a> <a href="#">Cut (N/A)</a>
-          <a href="#">Paste (N/A)</a> <a onclick="loadLayer()">Layers</a>
+          <a href="#">Paste (N/A)</a> <a onclick="app.loadLayer()">Layers</a>
         </div>
       </div>
 
       <div class="dropdown">
         <button class="dropbtn">View</button>
         <div class="dropdown-content">
-          <a onclick="toDualView()">Dual view</a>
-          <a onclick="toPixelView()">Pixel view</a>
-          <a onclick="to3dView()">3D view</a>
+          <a onclick="app.toDualView()">Dual view</a>
+          <a onclick="app.toPixelView()">Pixel view</a>
+          <a onclick="app.to3dView()">3D view</a>
         </div>
       </div>
     </div>
 
     <div class="toolbar"><a href="#">P</a> <a href="#">M</a></div>
 
-    <div id="3d-view" class="webgl-content"></div>
+    <div id="threeD-view" class="webgl-content"></div>
     <div id="pixel-view" class="webgl-content"></div>
   </body>
 </html>
