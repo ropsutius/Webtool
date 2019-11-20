@@ -4,12 +4,24 @@ class Application {
 
   constructor(options, matrix) {
     this.layers = options.layers;
-    this.canvasPixel = document.querySelector("#pixel-view");
-    this.canvas3D = document.querySelector("#threeD-view");
+    this.canvasPixel = document.getElementById("pixel-view");
+    this.canvas3D = document.getElementById("threeD-view");
 
     this.matrix = new Matrix(this, options, matrix);
     this.threeDView = new ThreeDView(this, this.canvas3D);
     this.pixelView = new PixelView(this, this.canvasPixel);
+
+    window.addEventListener("resize", this.onWindowResize.bind(this));
+  }
+
+  loadLayer() {
+    if (this.layers == 4) {
+      this.layers = 1;
+    } else {
+      this.layers += 1;
+    }
+    this.pixelView.reset();
+    this.threeDView.reset();
   }
 
   to3dView() {
@@ -36,19 +48,27 @@ class Application {
   }
 
   openNew() {
-    document.getElementById("modal").style.display = "block";
+    document.getElementById("new").style.display = "block";
   }
-
   closeNew() {
-    document.getElementById("modal").style.display = "none";
+    document.getElementById("new").style.display = "none";
   }
 
-  createNewCanvas() {
-    let weave = document.getElementById("weave").value;
-    let width = parseInt(document.getElementById("width").value);
-    let height = parseInt(document.getElementById("height").value);
-    let layers = parseInt(document.getElementById("layers").value);
+  openExport() {
+    document.getElementById("export").style.display = "block";
+  }
+  closeExport() {
+    document.getElementById("export").style.display = "none";
+  }
 
+  openSave() {
+    document.getElementById("save").style.display = "block";
+  }
+  closeSave() {
+    document.getElementById("save").style.display = "none";
+  }
+
+  createNewCanvas(layers, weave, width, height) {
     this.closeNew();
 
     if (width % layers != 0 || height % layers != 0) {
@@ -56,38 +76,40 @@ class Application {
       return;
     }
 
-    this.pixelView.reset({
-      Layers: layers,
-      Width: width,
-      Height: height,
-      Weave: weave
+    this.layers = parseInt(layers);
+    this.matrix.reset({
+      Weave: parseInt(weave),
+      Width: parseInt(width),
+      Height: parseInt(height)
     });
-    this.threeDView.reset({
-      Layers: layers,
-      Width: width,
-      Height: height,
-      Weave: weave
-    });
+    this.pixelView.reset();
+    this.threeDView.reset();
   }
 
-  loadLayer() {
-    if (this.layers == 4) {
-      this.pixelView.reset({ Layers: 1 });
-      this.threeDView.reset({ Layers: 1 });
-    } else {
-      this.pixelView.reset({ Layers: pv.layers + 1 });
-      this.threeDView.reset({ Layers: tv.layers + 1 });
-    }
+  saveProject(name) {
+    this.closeSave();
+    let file = this.matrix.getSaveData();
+    let element = document.createElement("a");
+    element.setAttribute(
+      "href",
+      "data:text/plain;charset=utf-8," + encodeURIComponent(file)
+    );
+    element.setAttribute("download", name + ".txt");
+
+    element.style.display = "none";
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
   }
 
-  exportTIFF() {
-    let name = prompt("Please enter the name of the file", "Example");
+  exportTIFF(name) {
+    this.closeExport();
     if (name != null && name != "") {
-      let colorMatrix = new Uint32Array(matrix.length * matrix[0].length);
+      let colorMatrix = new Uint32Array(this.matrix.y * this.matrix.x);
       let index = 0;
-      for (let i = 0; i < matrix.length; i++) {
-        for (let k = 0; k < matrix[i].length; k++) {
-          if (matrix[i][k] == 0) {
+      for (let i = 0; i < this.matrix.y; i++) {
+        for (let k = 0; k < this.matrix.x; k++) {
+          if (this.matrix.matrix[i][k] == 0) {
             colorMatrix[index] = 0xffffffff;
           } else {
             colorMatrix[index] = 0xff000000;
@@ -97,8 +119,8 @@ class Application {
       }
       let file = UTIF.encodeImage(
         colorMatrix.buffer,
-        matrix[0].length,
-        matrix.length
+        this.matrix.x,
+        this.matrix.y
       );
 
       var saveTIFF = (function() {
@@ -116,5 +138,10 @@ class Application {
       })();
       saveTIFF([file], name + ".tif");
     }
+  }
+
+  onWindowResize(pv, tv) {
+    this.pixelView.onWindowResize();
+    this.threeDView.onWindowResize();
   }
 }

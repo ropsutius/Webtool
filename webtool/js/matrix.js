@@ -4,7 +4,6 @@ class Matrix {
   y;
   constructor(app, options, matrix = []) {
     this.app = app;
-    this.layers = this.app.layers;
 
     if (matrix.length > 0) {
       this.setMatrix(matrix);
@@ -18,11 +17,20 @@ class Matrix {
       this.y = options.Height;
       this.x = options.Width;
       this.matrix = [];
-      let weave = weaves[options.Weave][this.layers - 1];
-      for (let y = 0; y < this.y; y++) {
-        this.matrix[y] = [];
-        for (let x = 0; x < this.x / weave.length; x++) {
-          this.matrix[y] = this.matrix[y].concat(weave[y % weave.length]);
+      if (options.Weave == "blank") {
+        for (let y = 0; y < this.y; y++) {
+          this.matrix[y] = [];
+          for (let x = 0; x < this.x; x++) {
+            this.matrix[y][x] = 0;
+          }
+        }
+      } else {
+        let weave = weaves[options.Weave][this.app.layers - 1];
+        for (let y = 0; y < this.y; y++) {
+          this.matrix[y] = [];
+          for (let x = 0; x < this.x / weave.length; x++) {
+            this.matrix[y] = this.matrix[y].concat(weave[y % weave.length]);
+          }
         }
       }
     }
@@ -37,7 +45,7 @@ class Matrix {
   }
 
   testMatrix(matrix) {
-    if (matrix.length % this.layers == 0) {
+    if (matrix.length % this.app.layers == 0) {
       let length = matrix[0].length;
       for (let i = 1; i < matrix.length; i++) {
         if (matrix[i].length != length) {
@@ -48,40 +56,15 @@ class Matrix {
     } else return false;
   }
 
-  getToggle(coords) {
-    return this.matrix[coords.y][coords.x];
-  }
-
-  getToggleById(id) {
-    return this.getToggle(this.getCoordinatesById(id));
-  }
-
-  getId(coords, sceneMatrix) {
-    return sceneMatrix[coords.y][coords.x] === undefined
-      ? null
-      : sceneMatrix[coords.y][coords.x];
-  }
-
-  getCoordinatesById(id, sceneMatrix) {
-    for (let i = 0; i < this.y; i++) {
-      let index = sceneMatrix[i].indexOf(id);
-      if (index > -1) {
-        return { y: i, x: index };
-      }
+  getSaveData() {
+    let string = "";
+    for (let i = 0; i < this.y - 1; i++) {
+      string += this.matrix[i].toString() + ";";
     }
-    return null;
-  }
-
-  toggle(coords) {
-    if (this.getToggle(coords) == 0) {
-      this.matrix[coords.y][coords.x] = 1;
-    } else {
-      this.matrix[coords.y][coords.x] = 0;
-    }
+    return string + this.matrix[this.y - 1].toString();
   }
 
   reset(options, matrix = []) {
-    this.layers = options.Layers;
     if (matrix.length == 0) {
       this.initMatrix(options);
     } else {

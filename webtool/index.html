@@ -16,28 +16,31 @@
     <title>Webtool</title>
   </head>
   <body>
-    <div id="modal" class="modal">
+    <div id="new" class="modal">
       <div class="modal-content">
         <div class="modal-header">
           <span class="close" onclick="app.closeNew()">&times;</span>
           <h2>Create New Canvas</h2>
         </div>
         <div class="modal-body">
-          <form>
-            <select name="layers" id="layers">
+          <form
+            onsubmit="app.createNewCanvas(this['layers'].value, this['weave'].value,
+            this['width'].value, this['height'].value)"
+          >
+            <select name="layers">
               <option value="1" selected>Single</option>
               <option value="2">Double</option>
               <option value="3">Triple</option>
               <option value="4">Quadruple</option>
             </select>
             <br />
-            <select name="weave" id="weave">
-              <option value="plain" selected>Plain weave</option>
+            <select name="weave">
+              <option value="blank" selected>Blank</option>
+              <option value="plain">Plain weave</option>
             </select>
             <br />
             <label for="width">Width:</label>
             <input
-              id="width"
               type="number"
               name="width"
               min="1"
@@ -47,7 +50,6 @@
             />
             <label for="height">Height:</label>
             <input
-              id="height"
               type="number"
               name="height"
               min="1"
@@ -56,10 +58,54 @@
               required
             />
             <br />
-            <button type="button" class="btn" onclick="app.createNewCanvas()">
+            <button type="submit" class="btn">
               Create Canvas
             </button>
             <button type="button" class="btn" onclick="app.closeNew()">
+              Cancel
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div id="export" class="modal download">
+      <div class="modal-content">
+        <div class="modal-header">
+          <span class="close" onclick="app.closeExport()">&times;</span>
+          <h2>Export Project as TIF-file</h2>
+        </div>
+        <div class="modal-body">
+          <form onsubmit="app.exportTIFF(this['name'].value)">
+            <input type="text" name="name" />
+            <label for="name">.tif</label>
+            <br />
+            <button type="submit" class="btn">
+              Download
+            </button>
+            <button type="button" class="btn" onclick="app.closeExport()">
+              Cancel
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div id="save" class="modal download">
+      <div class="modal-content">
+        <div class="modal-header">
+          <span class="close" onclick="app.closeSave()">&times;</span>
+          <h2>Save Project as a Text File</h2>
+        </div>
+        <div class="modal-body">
+          <form onsubmit="app.saveProject(this['name'].value)">
+            <input type="text" name="name" />
+            <label for="name">.txt</label>
+            <br />
+            <button type="submit" class="btn">
+              Download
+            </button>
+            <button type="button" class="btn" onclick="app.closeSave()">
               Cancel
             </button>
           </form>
@@ -72,7 +118,8 @@
         <button class="dropbtn">File</button>
         <div class="dropdown-content">
           <a onclick="app.openNew()">New</a> <a href="#">Open (N/A)</a>
-          <a href="#">Save (N/A)</a><a onclick="app.exportTIFF()">Export</a>
+          <a onclick="app.openSave()">Save</a
+          ><a onclick="app.openExport()">Export</a>
         </div>
       </div>
 

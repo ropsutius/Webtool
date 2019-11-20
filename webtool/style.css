@@ -146,7 +146,7 @@ body {
 
 /* Modal Body */
 .modal-body {
-  padding: 2px 16px;
+  padding: 12px 16px;
   color: black;
 }
 
@@ -201,6 +201,7 @@ body {
 /** ---FORM--- **/
 
 input[type="number"],
+input[type="text"],
 select,
 label,
 form button {
@@ -208,9 +209,18 @@ form button {
   font-size: 12px;
 }
 
-label {
+#new label {
   margin-right: 2px;
 }
+
+.download label {
+  margin-left: 0px;
+}
+
+.download input[type="text"] {
+  margin-right: 2px;
+}
+
 input[type="number"] {
   margin-left: 2px;
 }

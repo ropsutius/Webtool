@@ -6,7 +6,8 @@ class PixelView extends View {
     0xddffdd,
     0xddffff,
     0xffddff,
-    0x303030
+    0x303030,
+    0xffffff
   ];
   pixelColors = [];
   lineColor = 0x000000;
@@ -17,34 +18,33 @@ class PixelView extends View {
   constructor(app, canvas) {
     super(app, canvas);
 
-    this.canvas.addEventListener(
-      "mousedown",
-      this.onMouseDown.bind(this),
-      false
-    );
-    this.canvas.addEventListener("click", this.onMouseClick.bind(this), false);
-
     this.initPixelColors();
     this.initControls();
     this.initGrid();
   }
 
   initPixelColors() {
-    if (this.layers == 1) {
+    if (this.app.layers == 1) {
       this.pixelColors = [
-        [[0xffffff, 0x303030], [0xffffff, 0x303030]],
-        [[0xffffff, 0x303030], [0xffffff, 0x303030]]
+        [
+          [this.canvasColors[7], this.canvasColors[6]],
+          [this.canvasColors[7], this.canvasColors[6]]
+        ],
+        [
+          [this.canvasColors[7], this.canvasColors[6]],
+          [this.canvasColors[7], this.canvasColors[6]]
+        ]
       ];
       return;
     }
     this.pixelColors = [[], []];
-    for (let i = 0; i < (this.layers - (this.layers % 2)) / 2; i++) {
+    for (let i = 0; i < (this.app.layers - (this.app.layers % 2)) / 2; i++) {
       this.pixelColors[0].push([this.canvasColors[0], this.canvasColors[6]]);
       this.pixelColors[0].push([this.canvasColors[1], this.canvasColors[6]]);
       this.pixelColors[1].push([this.canvasColors[2], this.canvasColors[6]]);
       this.pixelColors[1].push([this.canvasColors[3], this.canvasColors[6]]);
     }
-    if (this.layers % 2 == 1) {
+    if (this.app.layers % 2 == 1) {
       this.pixelColors[0].push([this.canvasColors[4], this.canvasColors[6]]);
       this.pixelColors[1].push([this.canvasColors[5], this.canvasColors[6]]);
     }
@@ -93,7 +93,7 @@ class PixelView extends View {
     for (let i = 0; i < this.matrix.y; i++) {
       this.sceneMatrix[i] = [];
       for (let k = 0; k < this.matrix.x; k++) {
-        this.sceneMatrix[i][k] = this.addPixelToScene(point);
+        this.sceneMatrix[i][k] = this.addPixelToScene({ y: i, x: k });
       }
     }
 
@@ -176,9 +176,9 @@ class PixelView extends View {
       let curr = intersects[i].object;
       if (curr.type == "Mesh") {
         curr.material.color.set(
-          this.highlightColor[this.matrix.getToggleById(curr.id)]
+          this.highlightColor[this.getToggleById(curr.id)]
         );
-        this.previous.push(this.matrix.getCoordinatesById(curr.id));
+        this.previous.push(this.getCoordinatesById(curr.id));
         break;
       }
     }
@@ -186,7 +186,7 @@ class PixelView extends View {
 
   updatePixel(coords) {
     this.scene
-      .getObjectById(this.matrix.getId(coords, this.sceneMatrix))
+      .getObjectById(this.getId(coords))
       .material.color.set(this.getPixelColor(coords));
   }
 
@@ -199,17 +199,17 @@ class PixelView extends View {
   }
 
   getPixelColorById(id) {
-    return this.getPixelColor(this.matrix.getCoordinatesById(id));
+    return this.getPixelColor(this.getCoordinatesById(id));
   }
 
   getPixelColor(coords) {
-    if (coords.y % this.layers < coords.y % (this.layers * 2)) {
-      return this.pixelColors[1][coords.x % this.layers][
-        this.matrix.getToggle(coords)
+    if (coords.y % this.app.layers < coords.y % (this.app.layers * 2)) {
+      return this.pixelColors[1][coords.x % this.app.layers][
+        this.getToggle(coords)
       ];
     } else {
-      return this.pixelColors[0][coords.x % this.layers][
-        this.matrix.getToggle(coords)
+      return this.pixelColors[0][coords.x % this.app.layers][
+        this.getToggle(coords)
       ];
     }
   }
@@ -232,7 +232,7 @@ class PixelView extends View {
     for (let i = 0; i < intersects.length; i++) {
       let curr = intersects[i].object;
       if (curr == this.clicked && curr.type == "Mesh") {
-        this.rotateToggle(this.matrix.getCoordinatesById(curr.id));
+        this.rotateToggle(this.getCoordinatesById(curr.id));
         break;
       }
     }
@@ -249,7 +249,6 @@ class PixelView extends View {
   }
 
   reset(options, matrix) {
-    this.layers = options.Layers;
     this.previous = [];
 
     this.disposeHierarchy(this.scene);
@@ -257,8 +256,6 @@ class PixelView extends View {
     this.renderer.renderLists.dispose();
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(this.backgroundColor);
-
-    this.matrix.reset(options, matrix);
 
     this.initPixelColors();
     this.initControls();
