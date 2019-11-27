@@ -14,6 +14,8 @@ class PixelView extends View {
   lineWidth = 1;
   size = 10;
   camFactor = 3;
+  enableGrid = false;
+  panLimit;
 
   constructor(app, canvas) {
     super(app, canvas);
@@ -51,6 +53,11 @@ class PixelView extends View {
   }
 
   initControls() {
+    this.panLimit = {
+      y: { max: this.matrix.x * this.size, min: 0 },
+      x: { max: this.matrix.y * this.size, min: 0 }
+    };
+
     this.initCameraPos = {
       x: (this.matrix.x * this.size) / 2,
       y: -(this.matrix.y * this.size) / 2,
@@ -97,24 +104,43 @@ class PixelView extends View {
       }
     }
 
-    let lineGrid;
-    for (let i = 1; i < this.matrix.y; i++) {
-      this.addLineToSceneByPosition(i, this.lineWidth);
-    }
-    for (let i = 1; i < this.matrix.x; i++) {
-      this.addLineToSceneByPosition(i, this.lineWidth, "Vertical");
-    }
+    if (this.enableGrid || this.app.layers == 1) {
+      let lineGrid;
+      for (let i = 1; i < this.matrix.y; i++) {
+        this.addLineToSceneByPosition(i, this.lineWidth);
+      }
+      for (let i = 1; i < this.matrix.x; i++) {
+        this.addLineToSceneByPosition(i, this.lineWidth, "Vertical");
+      }
 
-    this.addLineToSceneByPosition(0, this.lineWidth * 5);
-    this.addLineToSceneByPosition(this.matrix.y, this.lineWidth * 5);
-    this.addLineToSceneByPosition(0, this.lineWidth * 5, "Vertical");
-    this.addLineToSceneByPosition(
-      this.matrix.x,
-      this.lineWidth * 5,
-      "Vertical"
-    );
+      this.addLineToSceneByPosition(0, this.lineWidth * 5);
+      this.addLineToSceneByPosition(this.matrix.y, this.lineWidth * 5);
+      this.addLineToSceneByPosition(0, this.lineWidth * 5, "Vertical");
+      this.addLineToSceneByPosition(
+        this.matrix.x,
+        this.lineWidth * 5,
+        "Vertical"
+      );
+    }
 
     this.animate();
+  }
+
+  addPixelToScene(coords) {
+    let planeGeometry = new THREE.PlaneGeometry(this.size, this.size);
+    // let boxGeometry = new THREE.BoxGeometry(this.size, this.size, 1);
+    let boxMaterial, color;
+    boxMaterial = new THREE.MeshBasicMaterial({
+      color: this.getPixelColor(coords)
+    });
+    let square = new THREE.Mesh(planeGeometry, boxMaterial);
+    square.position.set(
+      coords.x * this.size + this.size / 2,
+      -coords.y * this.size - this.size / 2,
+      0
+    );
+    this.scene.add(square);
+    return square.id;
   }
 
   addLineToSceneByPosition(pos, thickness, dir = "Horizontal") {
@@ -141,22 +167,6 @@ class PixelView extends View {
       line.position.set(pos * this.size, 0, 10);
     }
     this.scene.add(line);
-  }
-
-  addPixelToScene(coords) {
-    let boxGeometry = new THREE.BoxGeometry(this.size, this.size, 1);
-    let boxMaterial, color;
-    boxMaterial = new THREE.MeshBasicMaterial({
-      color: this.getPixelColor(coords)
-    });
-    let cube = new THREE.Mesh(boxGeometry, boxMaterial);
-    cube.position.set(
-      coords.x * this.size + this.size / 2,
-      -coords.y * this.size - this.size / 2,
-      0
-    );
-    this.scene.add(cube);
-    return cube.id;
   }
 
   draw() {
@@ -236,6 +246,24 @@ class PixelView extends View {
         break;
       }
     }
+  }
+
+  updateControls() {
+    // let pos_x = Math.min(
+    //   this.camera.right - this.panLimit.x.max,
+    //   Math.max(this.camera.left - this.panLimit.y.min, this.camera.position.x)
+    // );
+    // let pos_y = Math.min(
+    //   this.camera.bottom - this.panLimit.y.max,
+    //   Math.max(this.camera.top - this.panLimit.y.min, this.camera.position.y)
+    // );
+    //
+    // this.camera.position.set(pos_x, pos_y, this.camera.position.z);
+    // this.camera.lookAt(pos_x, pos_y, this.controls.target.z);
+    //
+    // this.controls.target.x = pos_x;
+    // this.controls.target.y = pos_y;
+    this.controls.update();
   }
 
   onWindowResize() {

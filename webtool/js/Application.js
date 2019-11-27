@@ -26,21 +26,21 @@ class Application {
 
   to3dView() {
     document.getElementById("pixel-view").style.display = "none";
-    document.getElementById("3d-view").style.display = "block";
-    document.getElementById("3d-view").style.width = "100%";
+    document.getElementById("threeD-view").style.display = "block";
+    document.getElementById("threeD-view").style.width = "100%";
     this.threeDView.onWindowResize();
   }
 
   toPixelView() {
-    document.getElementById("3d-view").style.display = "none";
+    document.getElementById("threeD-view").style.display = "none";
     document.getElementById("pixel-view").style.display = "block";
     document.getElementById("pixel-view").style.width = "100%";
     this.pixelView.onWindowResize();
   }
 
   toDualView() {
-    document.getElementById("3d-view").style.display = "block";
-    document.getElementById("3d-view").style.width = "50%";
+    document.getElementById("threeD-view").style.display = "block";
+    document.getElementById("threeD-view").style.width = "50%";
     document.getElementById("pixel-view").style.display = "block";
     document.getElementById("pixel-view").style.width = "50%";
     this.threeDView.onWindowResize();
@@ -68,8 +68,19 @@ class Application {
     document.getElementById("save").style.display = "none";
   }
 
-  createNewCanvas(layers, weave, width, height) {
+  openOpen() {
+    document.getElementById("open").style.display = "block";
+  }
+  closeOpen() {
+    document.getElementById("open").style.display = "none";
+  }
+
+  createNewCanvas() {
     this.closeNew();
+    let layers = parseInt(document.getElementById("layers").value);
+    let width = parseInt(document.getElementById("width").value);
+    let height = parseInt(document.getElementById("height").value);
+    let weave = document.getElementById("weave").value;
 
     if (width % layers != 0 || height % layers != 0) {
       alert("Canvas dimensions must match layers");
@@ -77,16 +88,41 @@ class Application {
     }
 
     this.layers = parseInt(layers);
-    this.matrix.reset({
-      Weave: parseInt(weave),
-      Width: parseInt(width),
-      Height: parseInt(height)
-    });
+    this.matrix.reset({ Weave: weave, Width: width, Height: height });
     this.pixelView.reset();
     this.threeDView.reset();
   }
 
-  saveProject(name) {
+  openFile(e) {
+    this.closeOpen();
+    var file = e.target.files[0];
+    if (!file) {
+      return;
+    }
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var contents = e.target.result;
+      app.parseFile(contents);
+    };
+    reader.readAsText(file);
+  }
+
+  parseFile(contents) {
+    let array = contents.split(";");
+    for (let i = 0; i < array.length; i++) {
+      array[i] = array[i].split(",");
+      for (let k = 0; k < array[i].length; k++) {
+        array[i][k] = parseInt(array[i][k]);
+      }
+    }
+    this.layers = 1;
+    this.matrix.reset({}, array);
+    this.pixelView.reset();
+    this.threeDView.reset();
+  }
+
+  saveProject() {
+    let name = document.getElementById("saveName").value;
     this.closeSave();
     let file = this.matrix.getSaveData();
     let element = document.createElement("a");
@@ -102,7 +138,8 @@ class Application {
     document.body.removeChild(element);
   }
 
-  exportTIFF(name) {
+  exportTIFF() {
+    let name = document.getElementById("exportName").value;
     this.closeExport();
     if (name != null && name != "") {
       let colorMatrix = new Uint32Array(this.matrix.y * this.matrix.x);

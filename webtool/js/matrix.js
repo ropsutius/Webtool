@@ -39,8 +39,8 @@ class Matrix {
   setMatrix(matrix) {
     if (this.testMatrix(matrix)) {
       this.matrix = matrix;
-      this.x = this.matrix[0].length;
       this.y = this.matrix.length;
+      this.x = this.matrix[0].length;
     }
   }
 

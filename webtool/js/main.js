@@ -1,4 +1,4 @@
 let app;
 window.onload = function() {
-  app = new Application({ layers: 2 }, plain_double);
+  app = new Application({ layers: 1, Width: 20, Height: 20, Weave: "plain" });
 };

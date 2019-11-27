@@ -19,7 +19,7 @@ class View {
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(this.backgroundColor);
 
-    this.renderer = new THREE.WebGLRenderer({ antialias: true });
+    this.renderer = new THREE.WebGLRenderer();
     this.renderer.setSize(this.canvas.offsetWidth, this.canvas.offsetHeight);
     this.canvas.appendChild(this.renderer.domElement);
 
@@ -43,7 +43,7 @@ class View {
   animate() {
     requestAnimationFrame(this.animate.bind(this));
     this.draw();
-    this.controls.update();
+    this.updateControls();
     this.renderer.render(this.scene, this.camera);
   }
 

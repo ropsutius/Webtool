@@ -239,21 +239,13 @@ class ThreeDView extends View {
       ((curr.y - (curr.y % this.app.layers)) / this.app.layers) *
       this.warpLength;
 
-    if (prevA == currA) {
-      return [
-        new THREE.Vector3(x, currY, this.warp[0] + z),
-        new THREE.Vector3(x, currY, this.warp[2] + z),
-        new THREE.Vector3(x, currY, this.warp[4] + z)
-      ];
-    } else if (prevA != currA) {
-      return [
-        new THREE.Vector3(x, prevY, this.warp[0] + z),
-        new THREE.Vector3(x, prevY, this.warp[1] + z),
-        new THREE.Vector3(x, midY, this.warp[2] + z),
-        new THREE.Vector3(x, currY, this.warp[3] + z),
-        new THREE.Vector3(x, currY, this.warp[4] + z)
-      ];
-    }
+    return [
+      new THREE.Vector3(x, prevY, this.warp[0] + z),
+      new THREE.Vector3(x, prevY, this.warp[1] + z),
+      new THREE.Vector3(x, midY, this.warp[2] + z),
+      new THREE.Vector3(x, currY, this.warp[3] + z),
+      new THREE.Vector3(x, currY, this.warp[4] + z)
+    ];
   }
 
   getHeight(coords) {
@@ -282,6 +274,10 @@ class ThreeDView extends View {
         break;
       }
     }
+  }
+
+  updateControls() {
+    this.controls.update();
   }
 
   onWindowResize() {

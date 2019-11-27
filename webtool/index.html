@@ -23,24 +23,22 @@
           <h2>Create New Canvas</h2>
         </div>
         <div class="modal-body">
-          <form
-            onsubmit="app.createNewCanvas(this['layers'].value, this['weave'].value,
-            this['width'].value, this['height'].value)"
-          >
-            <select name="layers">
+          <form>
+            <select name="layers" id="layers">
               <option value="1" selected>Single</option>
               <option value="2">Double</option>
               <option value="3">Triple</option>
               <option value="4">Quadruple</option>
             </select>
             <br />
-            <select name="weave">
+            <select name="weave" id="weave">
               <option value="blank" selected>Blank</option>
               <option value="plain">Plain weave</option>
             </select>
             <br />
             <label for="width">Width:</label>
             <input
+              id="width"
               type="number"
               name="width"
               min="1"
@@ -50,6 +48,7 @@
             />
             <label for="height">Height:</label>
             <input
+              id="height"
               type="number"
               name="height"
               min="1"
@@ -58,7 +57,7 @@
               required
             />
             <br />
-            <button type="submit" class="btn">
+            <button type="button" class="btn" onclick="app.createNewCanvas()">
               Create Canvas
             </button>
             <button type="button" class="btn" onclick="app.closeNew()">
@@ -76,11 +75,11 @@
           <h2>Export Project as TIF-file</h2>
         </div>
         <div class="modal-body">
-          <form onsubmit="app.exportTIFF(this['name'].value)">
-            <input type="text" name="name" />
+          <form>
+            <input type="text" name="name" id="exportName" />
             <label for="name">.tif</label>
             <br />
-            <button type="submit" class="btn">
+            <button type="button" class="btn" onclick="app.exportTIFF()">
               Download
             </button>
             <button type="button" class="btn" onclick="app.closeExport()">
@@ -98,14 +97,41 @@
           <h2>Save Project as a Text File</h2>
         </div>
         <div class="modal-body">
-          <form onsubmit="app.saveProject(this['name'].value)">
-            <input type="text" name="name" />
+          <form>
+            <input type="text" name="name" id="saveName" />
             <label for="name">.txt</label>
             <br />
-            <button type="submit" class="btn">
+            <button type="button" class="btn" onclick="app.saveProject()">
               Download
             </button>
             <button type="button" class="btn" onclick="app.closeSave()">
+              Cancel
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div id="open" class="modal download">
+      <div class="modal-content">
+        <div class="modal-header">
+          <span class="close" onclick="app.closeOpen()">&times;</span>
+          <h2>Open Project file</h2>
+        </div>
+        <div class="modal-body">
+          <form>
+            <label for="name">Choose a file: </label>
+            <input
+              type="file"
+              name="name"
+              id="openName"
+              onchange="app.openFile(event)"
+            />
+            <br />
+            <button type="button" class="btn" onclick="app.openFile()">
+              Open
+            </button>
+            <button type="button" class="btn" onclick="app.closeOpen()">
               Cancel
             </button>
           </form>
@@ -117,7 +143,8 @@
       <div class="dropdown">
         <button class="dropbtn">File</button>
         <div class="dropdown-content">
-          <a onclick="app.openNew()">New</a> <a href="#">Open (N/A)</a>
+          <a onclick="app.openNew()">New</a>
+          <a onclick="app.openOpen()">Open</a>
           <a onclick="app.openSave()">Save</a
           ><a onclick="app.openExport()">Export</a>
         </div>
