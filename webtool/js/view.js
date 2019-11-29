@@ -155,6 +155,13 @@ class View {
     return string;
   }
 
+  getHeight(coords) {
+    let string = this.getSetString(coords);
+    return this.okList[this.app.layers - 1].includes(string)
+      ? this.okList[this.app.layers - 1].indexOf(string)
+      : null;
+  }
+
   isStartPoint(coords) {
     return coords.y % this.app.layers == 0 ? true : false;
   }

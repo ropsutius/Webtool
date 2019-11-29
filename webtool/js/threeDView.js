@@ -248,13 +248,6 @@ class ThreeDView extends View {
     ];
   }
 
-  getHeight(coords) {
-    let string = this.getSetString(coords);
-    return this.okList[this.app.layers - 1].includes(string)
-      ? this.okList[this.app.layers - 1].indexOf(string)
-      : null;
-  }
-
   onMouseDown(event) {
     let intersects = this.getSetByMouse();
     for (let i = 0; i < intersects.length; i++) {
