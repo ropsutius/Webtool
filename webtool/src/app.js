@@ -1,25 +1,13 @@
 import * as Matrix from './matrix.js';
-//import * as PixelView from './pixelView.js';
 import * as ThreeDView from './threeDView.js';
 
-export let changed3D,
-  changedPixel,
-  layers,
-  canvasPixel,
-  matrix,
-  threeDView,
-  pixelView;
+export let layers, canvasPixel, matrix, threeDView, pixelView;
 
 export function init(options) {
-  changed3D = [];
-  changedPixel = [];
-
   layers = options.layers;
-  canvasPixel = document.getElementById('pixel-view');
 
   matrix = Matrix.initMatrix(options);
   threeDView = ThreeDView.init();
-  //pixelView = new PixelView(this, canvasPixel);
 }
 
 export function loadLayer() {
