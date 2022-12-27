@@ -1,4 +1,5 @@
 import * as Geometry from './Geometry.js';
+import { scene } from './threeDView.js';
 
 const matrix = {};
 const okList = [
@@ -20,7 +21,11 @@ export function initMatrix(options) {
       for (let i = 0; i < matrix.height; i++) {
         matrix.matrix[i] = [];
         for (let k = 0; k < matrix.width; k++) {
-          matrix.matrix[i][k] = { toggle: 0, id: undefined };
+          matrix.matrix[i][k] = {
+            toggle: 0,
+            id: undefined,
+            coords: { x: i, y: k },
+          };
         }
       }
       break;
@@ -77,12 +82,6 @@ export function reset(options, matrix = []) {
   }
 }
 
-export function isPrimePoint(point) {
-  return (
-    (point.x % matrix.layers) + (point.y % matrix.layers) === matrix.layers - 1
-  );
-}
-
 export function getWarpPoints(currentPoint) {
   let currentPointHeight = getHeight(currentPoint);
   if (currentPointHeight === null) return;
@@ -91,9 +90,10 @@ export function getWarpPoints(currentPoint) {
   let previousPointHeight;
   if (previousPoint !== null) previousPointHeight = getHeight(previousPoint);
   else
-    previousPointHeight = matrix.layers - (currentPoint.x % matrix.layers) - 1;
+    previousPointHeight =
+      matrix.layers - (currentPoint.coords.x % matrix.layers) - 1;
 
-  let warp = matrix.layers - (currentPoint.x % matrix.layers) - 1;
+  let warp = matrix.layers - (currentPoint.coords.x % matrix.layers) - 1;
   let previousPointY =
     Geometry.warpHeight * previousPointHeight + warp * Geometry.layerOffset;
   let currentPointY =
@@ -115,10 +115,12 @@ export function getWarpPoints(currentPoint) {
     Math.abs(currentPointY - previousPointY) / 2 +
     Math.min(previousPointY, currentPointY);
   const x =
-    ((currentPoint.x - (currentPoint.x % matrix.layers)) / matrix.layers) *
+    ((currentPoint.coords.x - (currentPoint.coords.x % matrix.layers)) /
+      matrix.layers) *
     Geometry.weftLength;
   const z =
-    ((currentPoint.y - (currentPoint.y % matrix.layers)) / matrix.layers) *
+    ((currentPoint.coords.y - (currentPoint.coords.y % matrix.layers)) /
+      matrix.layers) *
     Geometry.warpLength;
 
   return [
@@ -149,19 +151,20 @@ export function* getWeftPoints() {
   }
 }
 
-function getHeight(coords) {
-  let string = getSetString(coords);
+function getHeight(point) {
+  let string = getSetString(point);
   return okList[matrix.layers - 1].includes(string)
     ? okList[matrix.layers - 1].indexOf(string)
     : null;
 }
 
-function getSetString(coords) {
-  let point = getStartPoint(coords);
-  let string = getToggle(point).toString();
+function getSetString(point) {
+  let startPoint = getStartPoint(point);
+  let string = startPoint.toggle.toString();
+
   for (let i = 1; i < matrix.layers; i++) {
-    point = getNextPointInSet(point);
-    string += getToggle(point).toString();
+    startPoint = getNextPointInSet(startPoint);
+    string += startPoint.toggle.toString();
   }
   return string;
 }
@@ -175,72 +178,132 @@ function getStartPoint(point) {
   }
 }
 
-function isStartPoint(coords) {
-  return coords.y % matrix.layers === 0;
+export function getPointByCoordinates(coords) {
+  return matrix.matrix[coords.y][coords.x];
 }
 
-function getToggle(coords) {
-  return matrix.matrix[coords.y][coords.x].toggle;
+function isStartPoint(point) {
+  return point.coords.y % matrix.layers === 0;
 }
 
-function getPreviousSet(coords) {
-  return coords.y < matrix.layers
+function getPreviousSet(point) {
+  return point.coords.y < matrix.layers
     ? null
-    : { y: coords.y - matrix.layers, x: coords.x };
+    : getPointByCoordinates({
+        y: point.coords.y - matrix.layers,
+        x: point.coords.x,
+      });
 }
 
-function getNextSet(coords) {
-  return coords.y > matrix.y - matrix.layers - 1
+function getNextSet(point) {
+  return point.coords.y > matrix.height - matrix.layers - 1
     ? null
-    : { y: coords.y + matrix.layers, x: coords.x };
+    : getPointByCoordinates({
+        y: point.coords.y + matrix.layers,
+        x: point.coords.x,
+      });
 }
 
-export function resetChangedPoints() {
-  matrix.changedPoints = [];
-}
-
-export function rotateToggle(coords) {
-  console.log(coords);
-  let point = getStartPoint(coords);
+export function rotateToggle(point) {
+  let startPoint = getStartPoint(point);
   for (let i = 0; i < matrix.layers; i++) {
-    if (getToggle(point) == 0) {
-      tryToggle(point);
+    if (startPoint.toggle === 0) {
+      tryToggle(startPoint);
       return;
     }
+    startPoint = getNextPointInSet(startPoint);
+  }
+  let previousPoint = getPreviousPointInSet(startPoint);
+  for (let i = 0; i < matrix.layers; i++) {
+    if (previousPoint.toggle === 1) {
+      tryToggle(previousPoint);
+    }
+    previousPoint = getPreviousPointInSet(previousPoint);
+  }
+}
+
+export function getPointById(id) {
+  return matrix.matrix.flat().find((point) => point.id === id);
+}
+
+export function tryToggle(point) {
+  toggle(point);
+  let string = getSetString(point);
+  if (!okList[matrix.layers - 1].includes(string)) toggle(point);
+  else matrix.changedPoints.push(point);
+}
+
+export function toggle(point) {
+  if (point.toggle === 0) point.toggle = 1;
+  else point.toggle = 0;
+}
+
+export function getNextPointInSet(point) {
+  return !isLastPoint(point)
+    ? getPointByCoordinates({ x: point.coords.x, y: point.coords.y + 1 })
+    : getPointByCoordinates({
+        x: point.coords.x,
+        y: point.coords.y - matrix.layers + 1,
+      });
+}
+
+export function isLastPoint(point) {
+  return point.coords.y % matrix.layers === matrix.layers - 1;
+}
+
+export function isPrimePoint(point) {
+  return (
+    (point.coords.x % matrix.layers) + (point.coords.y % matrix.layers) ===
+    matrix.layers - 1
+  );
+}
+
+export function getPrimePoint(point) {
+  while (!isPrimePoint(point)) {
     point = getNextPointInSet(point);
   }
-  point = getPreviousPointInSet(point);
-  for (let i = 0; i < app.layers; i++) {
-    if (getToggle(point) == 1) {
-      tryToggle(point);
+  return point;
+}
+
+export function updateTubes() {
+  for (const point of matrix.changedPoints) {
+    const curve = getWarpPoints(getPrimePoint(point));
+    if (!curve) continue;
+
+    const tube = scene.getObjectById(point.id);
+    Geometry.updateTube(tube, curve);
+
+    const nextPoint = getNextSet(point);
+    if (nextPoint) {
+      const nextCurve = getWarpPoints(getPrimePoint(nextPoint));
+      if (!nextCurve) continue;
+
+      const nextTube = scene.getObjectById(nextPoint.id);
+      Geometry.updateTube(nextTube, nextCurve);
     }
-    point = getPreviousPointInSet(point);
   }
-}
+  matrix.changedPoints = [];
 
-export function getCoordinatesById(id) {
-  for (let i = 0; i < matrix.height; i++) {
-    const index = matrix.matrix[i].map((point) => point.id).indexOf(id);
-    if (index > -1) return { y: i, x: index };
+  /*for (let i = 0; i < previous.length; i++) {
+    resetTubeColor(previous[i]);
   }
-  return null;
-}
+  previous = [];
 
-export function tryToggle(coords) {
-  toggle(coords);
-  let string = getSetString(coords);
-  if (!okList[app.layers - 1].includes(string)) {
-    toggle(coords);
-  } else {
-    app.changed3D.push(coords);
-    app.changedPixel.push(coords);
-  }
-}
+  let intersects = getSetByMouse();
+  for (let i = 0; i < intersects.length; i++) {
+    let curr = intersects[i].object;
+    if (curr.name == 'Warp') {
+      let currC = getCoordinatesById(curr.id);
+      let nextC = getNextSet(currC);
+      if (nextC != null) {
+        let next = scene.getObjectById(getId(nextC));
+        next.material.color.set(highlightColor[1]);
+        previous.push(nextC);
+      }
 
-export function toggle(coords) {
-  if (getToggle(coords) === 0) {
-    matrix.matrix[coords.y][coords.x] = 1;
-  } else {
-    matrix.matrix[coords.y][coords.x] = 0;
-  }
+      curr.material.color.set(highlightColor[1]);
+      previous.push(currC);
+      break;
+    }
+  }*/
 }

@@ -1,4 +1,5 @@
 import * as Materials from './Materials.js';
+import * as Matrix from './Matrix.js';
 
 export const weftLength = 2;
 export const warpLength = 4;
@@ -35,4 +36,17 @@ export function getTubeFromCurve(curve, type) {
 
   tube.name = type;
   return tube;
+}
+
+export function updateTube(tube, curve) {
+  tube.geometry.copy(
+    new THREE.TubeBufferGeometry(
+      new THREE.CatmullRomCurve3(curve),
+      tubeSegments,
+      tubeRadius,
+      tubeRadialSegments,
+      false
+    )
+  );
+  tube.geometry.needsUpdate = true;
 }

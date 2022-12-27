@@ -27,13 +27,6 @@ export function init() {
   camera = initCamera(canvas, center);
   controls = initControls(camera, renderer, center);
 
-  initScene();
-
-  console.log(scene);
-  console.log(matrix.matrix);
-}
-
-function initScene() {
   let light = new THREE.HemisphereLight(Materials.lightColor);
   light.position.y = -10;
   scene.add(light);
@@ -44,11 +37,12 @@ function initScene() {
 
   for (let i = 0; i < matrix.width; i++) {
     for (let k = 0; k < matrix.height; k++) {
-      if (!Matrix.isPrimePoint({ x: i, y: k })) continue;
+      const point = Matrix.getPointByCoordinates({ x: i, y: k });
+      if (!Matrix.isPrimePoint(point)) continue;
 
-      const curve = Matrix.getWarpPoints({ y: k, x: i });
+      const curve = Matrix.getWarpPoints(point);
       const tube = Geometry.getTubeFromCurve(curve, 'Warp');
-      const newPoint = { toggle: matrix.matrix[k][i].toggle, id: tube.id };
+      const newPoint = { ...matrix.matrix[k][i], id: tube.id };
       matrix.matrix[k][i] = newPoint;
       scene.add(tube);
     }
@@ -59,11 +53,15 @@ function initScene() {
   }
 
   animate();
+
+  console.log(scene);
+  console.log(matrix.matrix);
 }
 
 export function animate() {
   requestAnimationFrame(animate);
   controls.update();
 
+  Matrix.updateTubes();
   renderer.render(scene, camera);
 }
