@@ -15,7 +15,9 @@ export function onMouseClick(scene, camera) {
   const intersects = raycaster.intersectObjects(scene.children);
 
   for (const { object } of intersects) {
-    Matrix.rotateToggle(Matrix.getPointById(object.id));
-    break;
+    if (object.name === 'Warp') {
+      Matrix.rotateToggle(Matrix.getPointById(object.id));
+      break;
+    }
   }
 }

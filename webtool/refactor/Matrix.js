@@ -46,14 +46,6 @@ export function getMatrix() {
   return matrix;
 }
 
-export function setMatrix(matrix) {
-  if (testMatrix(matrix)) {
-    matrix = matrix;
-    y = matrix.length;
-    x = matrix[0].length;
-  }
-}
-
 export function testMatrix(matrix) {
   if (matrix.length % matrix.layers == 0) {
     let length = matrix[0].length;
@@ -72,14 +64,6 @@ export function getSaveData() {
     string += matrix[i].toString() + ';';
   }
   return string + matrix[y - 1].toString();
-}
-
-export function reset(options, matrix = []) {
-  if (matrix.length == 0) {
-    initMatrix(options);
-  } else {
-    setMatrix(matrix);
-  }
 }
 
 export function getWarpPoints(currentPoint) {
@@ -169,6 +153,36 @@ function getSetString(point) {
   return string;
 }
 
+function isStartPoint(point) {
+  return point.coords.y % matrix.layers === 0;
+}
+
+export function isLastPoint(point) {
+  return point.coords.y % matrix.layers === matrix.layers - 1;
+}
+
+export function isPrimePoint(point) {
+  return (
+    (point.coords.x % matrix.layers) + (point.coords.y % matrix.layers) ===
+    matrix.layers - 1
+  );
+}
+
+export function getPointByCoordinates(coords) {
+  return matrix.matrix[coords.y][coords.x];
+}
+
+export function getPointById(id) {
+  return matrix.matrix.flat().find((point) => point.id === id);
+}
+
+export function getPrimePoint(point) {
+  while (!isPrimePoint(point)) {
+    point = getNextPointInSet(point);
+  }
+  return point;
+}
+
 function getStartPoint(point) {
   if (isStartPoint(point)) return point;
 
@@ -178,12 +192,22 @@ function getStartPoint(point) {
   }
 }
 
-export function getPointByCoordinates(coords) {
-  return matrix.matrix[coords.y][coords.x];
+export function getPreviousPointInSet(point) {
+  return !isStartPoint(point)
+    ? getPointByCoordinates({ x: point.coords.x, y: point.coords.y - 1 })
+    : getPointByCoordinates({
+        x: point.coords.x,
+        y: point.coords.y + matrix.layers - 1,
+      });
 }
 
-function isStartPoint(point) {
-  return point.coords.y % matrix.layers === 0;
+export function getNextPointInSet(point) {
+  return !isLastPoint(point)
+    ? getPointByCoordinates({ x: point.coords.x, y: point.coords.y + 1 })
+    : getPointByCoordinates({
+        x: point.coords.x,
+        y: point.coords.y - matrix.layers + 1,
+      });
 }
 
 function getPreviousSet(point) {
@@ -222,47 +246,13 @@ export function rotateToggle(point) {
   }
 }
 
-export function getPointById(id) {
-  return matrix.matrix.flat().find((point) => point.id === id);
-}
-
 export function tryToggle(point) {
-  toggle(point);
+  point.toggle = point.toggle === 0 ? 1 : 0;
+
   let string = getSetString(point);
-  if (!okList[matrix.layers - 1].includes(string)) toggle(point);
+  if (!okList[matrix.layers - 1].includes(string))
+    point.toggle = point.toggle === 0 ? 1 : 0;
   else matrix.changedPoints.push(point);
-}
-
-export function toggle(point) {
-  if (point.toggle === 0) point.toggle = 1;
-  else point.toggle = 0;
-}
-
-export function getNextPointInSet(point) {
-  return !isLastPoint(point)
-    ? getPointByCoordinates({ x: point.coords.x, y: point.coords.y + 1 })
-    : getPointByCoordinates({
-        x: point.coords.x,
-        y: point.coords.y - matrix.layers + 1,
-      });
-}
-
-export function isLastPoint(point) {
-  return point.coords.y % matrix.layers === matrix.layers - 1;
-}
-
-export function isPrimePoint(point) {
-  return (
-    (point.coords.x % matrix.layers) + (point.coords.y % matrix.layers) ===
-    matrix.layers - 1
-  );
-}
-
-export function getPrimePoint(point) {
-  while (!isPrimePoint(point)) {
-    point = getNextPointInSet(point);
-  }
-  return point;
 }
 
 export function updateTubes() {
