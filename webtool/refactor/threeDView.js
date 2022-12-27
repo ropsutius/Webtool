@@ -29,13 +29,8 @@ export function init() {
 
   initScene();
 
-  scene.add(
-    new THREE.Mesh(
-      new THREE.BoxGeometry(1, 1, 1),
-      new THREE.MeshBasicMaterial(0x00ff00)
-    )
-  );
   console.log(scene);
+  console.log(matrix.matrix);
 }
 
 function initScene() {
@@ -53,8 +48,9 @@ function initScene() {
 
       const curve = Matrix.getWarpPoints({ y: k, x: i });
       const tube = Geometry.getTubeFromCurve(curve, 'Warp');
+      const newPoint = { toggle: matrix.matrix[k][i].toggle, id: tube.id };
+      matrix.matrix[k][i] = newPoint;
       scene.add(tube);
-      matrix.matrix[k][i].id = tube.id;
     }
   }
 

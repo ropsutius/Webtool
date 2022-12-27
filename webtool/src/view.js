@@ -45,8 +45,6 @@ export function init(app, canvas) {
   canvas.addEventListener('click', onMouseClick.bind(this), false);
 }
 
-export function constructor(app, canvas) {}
-
 export function animate() {
   requestAnimationFrame(animate.bind(this));
   draw();

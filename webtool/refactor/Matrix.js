@@ -17,11 +17,12 @@ export function initMatrix(options) {
 
   switch (options.weave) {
     case 'blank':
-      matrix.matrix = Array(matrix.height).fill(
-        Array(matrix.width)
-          .fill()
-          .map(() => ({ toggle: 0, id: undefined }))
-      );
+      for (let i = 0; i < matrix.height; i++) {
+        matrix.matrix[i] = [];
+        for (let k = 0; k < matrix.width; k++) {
+          matrix.matrix[i][k] = { toggle: 0, id: undefined };
+        }
+      }
       break;
 
     case 'plain':
@@ -196,4 +197,50 @@ function getNextSet(coords) {
 
 export function resetChangedPoints() {
   matrix.changedPoints = [];
+}
+
+export function rotateToggle(coords) {
+  console.log(coords);
+  let point = getStartPoint(coords);
+  for (let i = 0; i < matrix.layers; i++) {
+    if (getToggle(point) == 0) {
+      tryToggle(point);
+      return;
+    }
+    point = getNextPointInSet(point);
+  }
+  point = getPreviousPointInSet(point);
+  for (let i = 0; i < app.layers; i++) {
+    if (getToggle(point) == 1) {
+      tryToggle(point);
+    }
+    point = getPreviousPointInSet(point);
+  }
+}
+
+export function getCoordinatesById(id) {
+  for (let i = 0; i < matrix.height; i++) {
+    const index = matrix.matrix[i].map((point) => point.id).indexOf(id);
+    if (index > -1) return { y: i, x: index };
+  }
+  return null;
+}
+
+export function tryToggle(coords) {
+  toggle(coords);
+  let string = getSetString(coords);
+  if (!okList[app.layers - 1].includes(string)) {
+    toggle(coords);
+  } else {
+    app.changed3D.push(coords);
+    app.changedPixel.push(coords);
+  }
+}
+
+export function toggle(coords) {
+  if (getToggle(coords) === 0) {
+    matrix.matrix[coords.y][coords.x] = 1;
+  } else {
+    matrix.matrix[coords.y][coords.x] = 0;
+  }
 }

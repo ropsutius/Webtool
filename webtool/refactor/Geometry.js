@@ -34,6 +34,5 @@ export function getTubeFromCurve(curve, type) {
   const tube = new THREE.Mesh(tubeGeometry, tubeMaterial);
 
   tube.name = type;
-  //scene.add(tube);
   return tube;
 }
