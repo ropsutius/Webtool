@@ -1,11 +1,12 @@
 import { scene, camera, canvas } from './threeDView.js';
-import { onPointerMove, onMouseClick } from './interaction.js';
+import { onPointerMove, onMouseClick, onWindowResize } from './interaction.js';
 
 export function addEventHandlers() {
   canvas.addEventListener('pointermove', (event) =>
     onPointerMove(event, canvas)
   );
   canvas.addEventListener('click', () => onMouseClick(scene, camera));
+  window.addEventListener('resize', () => onWindowResize(canvas));
 }
 
 export function init() {

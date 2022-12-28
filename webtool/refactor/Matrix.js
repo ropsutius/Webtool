@@ -1,5 +1,6 @@
 import * as Geometry from './Geometry.js';
 import { scene } from './threeDView.js';
+import { initBlankWeave, initPlainWeave } from '../weaves/weaves.js';
 
 const matrix = {};
 const okList = [
@@ -9,7 +10,7 @@ const okList = [
   ['0000', '1000', '1100', '1110', '1111'],
 ];
 
-export function initMatrix(options) {
+export async function initMatrix(options) {
   matrix.height = options.height;
   matrix.width = options.width;
   matrix.layers = options.layers;
@@ -19,26 +20,11 @@ export function initMatrix(options) {
 
   switch (options.weave) {
     case 'blank':
-      for (let y = 0; y < matrix.height; y++) {
-        matrix.matrix[y] = [];
-        for (let x = 0; x < matrix.width; x++) {
-          matrix.matrix[y][x] = {
-            toggle: 0,
-            id: undefined,
-            coords: { x, y },
-          };
-        }
-      }
+      await initBlankWeave(matrix);
       break;
 
     case 'plain':
-      let weave = weaves[options.weave][matrix.layers - 1];
-      for (let y = 0; y < y; y++) {
-        matrix.matrix[y] = [];
-        for (let x = 0; x < x / weave.length; x++) {
-          matrix.matrix[y] = matrix.matrix[y].concat(weave[y % weave.length]);
-        }
-      }
+      await initPlainWeave(matrix, options);
       break;
   }
 }
@@ -85,15 +71,15 @@ export function getWarpPoints(currentPoint) {
     Geometry.warpHeight * currentPointHeight + warp * Geometry.layerOffset;
 
   if (currentPointHeight < warp) {
-    currentPointY -= (warp - currentPointHeight) * layerOffset;
+    currentPointY -= (warp - currentPointHeight) * Geometry.layerOffset;
   } else if (currentPointHeight > warp + 1) {
-    currentPointY += (currentPointHeight - warp - 1) * layerOffset;
+    currentPointY += (currentPointHeight - warp - 1) * Geometry.layerOffset;
   }
 
   if (previousPointHeight < warp) {
-    previousPointY -= (warp - previousPointHeight) * layerOffset;
+    previousPointY -= (warp - previousPointHeight) * Geometry.layerOffset;
   } else if (previousPointHeight > warp + 1) {
-    previousPointY += (previousPointHeight - warp - 1) * layerOffset;
+    previousPointY += (previousPointHeight - warp - 1) * Geometry.layerOffset;
   }
 
   let middleY =
@@ -262,6 +248,7 @@ export function updateTubeHeights() {
     if (!curve) continue;
 
     const tube = scene.getObjectById(point.id);
+    console.log(point, tube, curve);
     Geometry.updateTube(tube, curve);
 
     const nextPoint = getNextSet(point);

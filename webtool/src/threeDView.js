@@ -268,7 +268,7 @@ export function updateControls() {
   controls.update();
 }
 
-export function onWindowResize() {
+export function onWindowResize(canvas) {
   camera.aspect = canvas.offsetWidth / canvas.offsetHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(canvas.offsetWidth, canvas.offsetHeight);

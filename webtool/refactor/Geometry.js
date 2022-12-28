@@ -1,6 +1,4 @@
 import * as Materials from './Materials.js';
-import * as Matrix from './Matrix.js';
-import { scene } from './threeDView.js';
 
 export const weftLength = 2;
 export const warpLength = 4;
@@ -40,14 +38,16 @@ export function getTubeFromCurve(curve, type) {
 }
 
 export function updateTube(tube, curve) {
-  tube.geometry.copy(
-    new THREE.TubeBufferGeometry(
-      new THREE.CatmullRomCurve3(curve),
-      tubeSegments,
-      tubeRadius,
-      tubeRadialSegments,
-      false
-    )
-  );
-  tube.geometry.needsUpdate = true;
+  if (tube && curve) {
+    tube.geometry.copy(
+      new THREE.TubeBufferGeometry(
+        new THREE.CatmullRomCurve3(curve),
+        tubeSegments,
+        tubeRadius,
+        tubeRadialSegments,
+        false
+      )
+    );
+    tube.geometry.needsUpdate = true;
+  }
 }

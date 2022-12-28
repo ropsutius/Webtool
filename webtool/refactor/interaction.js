@@ -1,21 +1,26 @@
 import * as Matrix from './Matrix.js';
 import * as Materials from './Materials.js';
-import * as Geometry from './Geometry.js';
-import { scene, camera } from './threeDView.js';
+import { scene, camera, renderer, canvas } from './threeDView.js';
 
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2(-1000000, -1000000);
 
 let hoveredOverPoints = [];
 
-export function onPointerMove(event, canvas) {
+export function onWindowResize() {
+  camera.aspect = canvas.offsetWidth / canvas.offsetHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(canvas.offsetWidth, canvas.offsetHeight);
+}
+
+export function onPointerMove(event) {
   pointer.x =
     ((event.clientX - canvas.offsetLeft) / canvas.offsetWidth) * 2 - 1;
   pointer.y =
     -((event.clientY - canvas.offsetTop) / canvas.offsetHeight) * 2 + 1;
 }
 
-export function onMouseClick(scene, camera) {
+export function onMouseClick() {
   raycaster.setFromCamera(pointer, camera);
   const intersects = raycaster.intersectObjects(scene.children);
 

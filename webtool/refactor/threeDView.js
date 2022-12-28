@@ -7,7 +7,7 @@ import { updateTubeColors } from './interaction.js';
 
 export let canvas, scene, renderer, controls, camera, matrix;
 
-export function init() {
+export async function initScene() {
   scene = new THREE.Scene();
   scene.background = new THREE.Color(Materials.backgroundColor);
 
