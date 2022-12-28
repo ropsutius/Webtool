@@ -17,7 +17,7 @@
     <div id="new" class="modal">
       <div class="modal-content">
         <div class="modal-header">
-          <span class="close" onclick="app.closeNew()">&times;</span>
+          <span id="close_new_span" class="close">&times;</span>
           <h2>Create New Canvas</h2>
         </div>
         <div class="modal-body">
@@ -55,10 +55,10 @@
               required
             />
             <br />
-            <button type="button" class="btn" onclick="app.createNewCanvas()">
+            <button id="new_button" type="button" class="btn">
               Create Canvas
             </button>
-            <button type="button" class="btn" onclick="app.closeNew()">
+            <button id="close_new_button" type="button" class="btn">
               Cancel
             </button>
           </form>
@@ -66,21 +66,19 @@
       </div>
     </div>
 
-    <div id="export" class="modal download">
+    <div id="import" class="modal download">
       <div class="modal-content">
         <div class="modal-header">
-          <span class="close" onclick="app.closeExport()">&times;</span>
-          <h2>Export Project as TIF-file</h2>
+          <span id="close_import_span" class="close">&times;</span>
+          <h2>Open Project file</h2>
         </div>
         <div class="modal-body">
-          <form>
-            <input type="text" name="name" id="exportName" />
-            <label for="name">.tif</label>
+          <form id="import_form">
+            <label for="name">Choose a file: </label>
+            <input id="import_by_name_button" type="file" name="name" />
             <br />
-            <button type="button" class="btn" onclick="app.exportTIFF()">
-              Download
-            </button>
-            <button type="button" class="btn" onclick="app.closeExport()">
+            <button id="import_button" type="submit" class="btn">Open</button>
+            <button id="close_import_button" type="button" class="btn">
               Cancel
             </button>
           </form>
@@ -91,7 +89,7 @@
     <div id="save" class="modal download">
       <div class="modal-content">
         <div class="modal-header">
-          <span class="close" onclick="app.closeSave()">&times;</span>
+          <span id="close_save_span" class="close">&times;</span>
           <h2>Save Project as a Text File</h2>
         </div>
         <div class="modal-body">
@@ -99,10 +97,8 @@
             <input type="text" name="name" id="saveName" />
             <label for="name">.txt</label>
             <br />
-            <button type="button" class="btn" onclick="app.saveProject()">
-              Download
-            </button>
-            <button type="button" class="btn" onclick="app.closeSave()">
+            <button id="save_button" type="button" class="btn">Download</button>
+            <button id="close_save_button" type="button" class="btn">
               Cancel
             </button>
           </form>
@@ -110,26 +106,21 @@
       </div>
     </div>
 
-    <div id="open" class="modal download">
+    <div id="export" class="modal download">
       <div class="modal-content">
         <div class="modal-header">
-          <span class="close" onclick="app.closeOpen()">&times;</span>
-          <h2>Open Project file</h2>
+          <span id="close_export_span" class="close">&times;</span>
+          <h2>Export Project as TIF-file</h2>
         </div>
         <div class="modal-body">
           <form>
-            <label for="name">Choose a file: </label>
-            <input
-              type="file"
-              name="name"
-              id="openName"
-              onchange="app.openFile(event)"
-            />
+            <input type="text" name="name" id="exportName" />
+            <label for="name">.tif</label>
             <br />
-            <button type="button" class="btn" onclick="app.openFile()">
-              Open
+            <button id="export_button" type="button" class="btn">
+              Download
             </button>
-            <button type="button" class="btn" onclick="app.closeOpen()">
+            <button id="close_export_button" type="button" class="btn">
               Cancel
             </button>
           </form>
@@ -141,10 +132,10 @@
       <div class="dropdown">
         <button class="dropbtn">File</button>
         <div class="dropdown-content">
-          <a onclick="app.openNew()">New</a>
-          <a onclick="app.openOpen()">Open</a>
-          <a onclick="app.openSave()">Save</a
-          ><a onclick="app.openExport()">Export</a>
+          <a id="open_new_button">New</a>
+          <a id="open_import_button">Open</a>
+          <a id="open_save_button">Save</a>
+          <a id="open_export_button">Export</a>
         </div>
       </div>
 
