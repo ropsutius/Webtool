@@ -15,16 +15,17 @@ export function initMatrix(options) {
   matrix.layers = options.layers;
   matrix.matrix = [];
   matrix.changedPoints = [];
+  matrix.hoveredOverPoints = [];
 
   switch (options.weave) {
     case 'blank':
-      for (let i = 0; i < matrix.height; i++) {
-        matrix.matrix[i] = [];
-        for (let k = 0; k < matrix.width; k++) {
-          matrix.matrix[i][k] = {
+      for (let y = 0; y < matrix.height; y++) {
+        matrix.matrix[y] = [];
+        for (let x = 0; x < matrix.width; x++) {
+          matrix.matrix[y][x] = {
             toggle: 0,
             id: undefined,
-            coords: { x: i, y: k },
+            coords: { x, y },
           };
         }
       }
@@ -219,7 +220,7 @@ function getPreviousSet(point) {
       });
 }
 
-function getNextSet(point) {
+export function getNextSet(point) {
   return point.coords.y > matrix.height - matrix.layers - 1
     ? null
     : getPointByCoordinates({
@@ -255,7 +256,7 @@ export function tryToggle(point) {
   else matrix.changedPoints.push(point);
 }
 
-export function updateTubes() {
+export function updateTubeHeights() {
   for (const point of matrix.changedPoints) {
     const curve = getWarpPoints(getPrimePoint(point));
     if (!curve) continue;
@@ -273,27 +274,4 @@ export function updateTubes() {
     }
   }
   matrix.changedPoints = [];
-
-  /*for (let i = 0; i < previous.length; i++) {
-    resetTubeColor(previous[i]);
-  }
-  previous = [];
-
-  let intersects = getSetByMouse();
-  for (let i = 0; i < intersects.length; i++) {
-    let curr = intersects[i].object;
-    if (curr.name == 'Warp') {
-      let currC = getCoordinatesById(curr.id);
-      let nextC = getNextSet(currC);
-      if (nextC != null) {
-        let next = scene.getObjectById(getId(nextC));
-        next.material.color.set(highlightColor[1]);
-        previous.push(nextC);
-      }
-
-      curr.material.color.set(highlightColor[1]);
-      previous.push(currC);
-      break;
-    }
-  }*/
 }

@@ -1,5 +1,6 @@
 import * as Materials from './Materials.js';
 import * as Matrix from './Matrix.js';
+import { scene } from './threeDView.js';
 
 export const weftLength = 2;
 export const warpLength = 4;

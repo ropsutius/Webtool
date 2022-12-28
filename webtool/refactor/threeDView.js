@@ -3,6 +3,7 @@ import * as Materials from './Materials.js';
 import * as Geometry from './Geometry.js';
 import { initControls } from './controls.js';
 import { initCamera } from './camera.js';
+import { updateTubeColors } from './interaction.js';
 
 export let canvas, scene, renderer, controls, camera, matrix;
 
@@ -62,6 +63,8 @@ export function animate() {
   requestAnimationFrame(animate);
   controls.update();
 
-  Matrix.updateTubes();
+  Matrix.updateTubeHeights();
+  updateTubeColors();
+
   renderer.render(scene, camera);
 }
