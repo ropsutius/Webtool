@@ -8,7 +8,6 @@
     <base href="./" />
 
     <script src="https://cdn.jsdelivr.net/npm/three@0.131.3/build/three.js"></script>
-    <script src="./src/UTIF.js"></script>
     <script defer type="module" src="./refactor/index.js"></script>
     <link rel="stylesheet" href="index.css" />
     <title>Webtool</title>
@@ -93,11 +92,11 @@
           <h2>Save Project as a Text File</h2>
         </div>
         <div class="modal-body">
-          <form>
-            <input type="text" name="name" id="saveName" />
+          <form id="save_form">
+            <input type="text" name="name" />
             <label for="name">.txt</label>
             <br />
-            <button id="save_button" type="button" class="btn">Download</button>
+            <button type="submit" class="btn">Download</button>
             <button id="close_save_button" type="button" class="btn">
               Cancel
             </button>
@@ -113,13 +112,11 @@
           <h2>Export Project as TIF-file</h2>
         </div>
         <div class="modal-body">
-          <form>
-            <input type="text" name="name" id="exportName" />
+          <form id="export_form">
+            <input type="text" name="name" />
             <label for="name">.tif</label>
             <br />
-            <button id="export_button" type="button" class="btn">
-              Download
-            </button>
+            <button type="submit" class="btn">Download</button>
             <button id="close_export_button" type="button" class="btn">
               Cancel
             </button>

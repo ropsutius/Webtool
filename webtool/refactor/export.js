@@ -1,51 +1,67 @@
-export function saveProject() {
-  let name = document.getElementById('saveName').value;
-  closeSave();
-  let file = matrix.getSaveData();
-  let element = document.createElement('a');
-  element.setAttribute(
-    'href',
-    'data:text/plain;charset=utf-8,' + encodeURIComponent(file)
-  );
-  element.setAttribute('download', name + '.txt');
+import { UTIF } from './UTIF.js';
+import * as Matrix from './Matrix.js';
 
-  element.style.display = 'none';
-  document.body.appendChild(element);
-  element.click();
-  document.body.removeChild(element);
+function getMatrixString(matrixToggles) {
+  return matrixToggles.matrix.map((row) => row.toString()).join(';');
 }
 
-export function exportTIFF() {
-  let name = document.getElementById('exportName').value;
-  closeExport();
-  if (name != null && name != '') {
-    let colorMatrix = new Uint32Array(matrix.y * matrix.x);
-    let index = 0;
-    for (let i = 0; i < matrix.y; i++) {
-      for (let k = 0; k < matrix.x; k++) {
-        if (matrix.matrix[i][k] == 0) {
-          colorMatrix[index] = 0xffffffff;
-        } else {
-          colorMatrix[index] = 0xff000000;
-        }
-        index++;
-      }
-    }
-    let file = UTIF.encodeImage(colorMatrix.buffer, matrix.x, matrix.y);
+export function saveProject(event) {
+  event.preventDefault();
 
-    var saveTIFF = (function () {
-      let element = document.createElement('a');
-      document.body.appendChild(element);
-      element.style = 'display: none';
-      return function (data, name) {
-        let blob = new Blob(data, { type: 'octet/stream' }),
-          url = window.URL.createObjectURL(blob);
-        element.href = url;
-        element.download = name;
-        element.click();
-        window.URL.revokeObjectURL(url);
-      };
-    })();
-    saveTIFF([file], name + '.tif');
+  const fileName = event.target[0].value;
+  const matrixToggles = Matrix.getMatrixToggles();
+
+  const file = getMatrixString(matrixToggles);
+
+  const element = document.createElement('a');
+  document.body.appendChild(element);
+
+  const blob = new Blob([file], { type: 'data:text/plain;charset=utf-8' });
+  const url = window.URL.createObjectURL(blob);
+
+  element.href = url;
+  element.download = fileName + '.txt';
+  element.style = 'display: none';
+  element.click();
+  window.URL.revokeObjectURL(url);
+}
+
+export function exportProject(event) {
+  event.preventDefault();
+  exportTIFF(event.target[0].value);
+}
+
+function exportTIFF(fileName) {
+  if (fileName === null || fileName === '') return;
+
+  const matrix = Matrix.getMatrix();
+
+  const colorMatrix = new Uint32Array(matrix.height * matrix.width);
+  let index = 0;
+  for (let i = 0; i < matrix.height; i++) {
+    for (let k = 0; k < matrix.width; k++) {
+      if (matrix.matrix[i][k].toggle === 0) colorMatrix[index] = 0xffffffff;
+      else colorMatrix[index] = 0xff000000;
+
+      index++;
+    }
   }
+
+  const file = UTIF.encodeImage(
+    colorMatrix.buffer,
+    matrix.width,
+    matrix.height
+  );
+
+  const element = document.createElement('a');
+  document.body.appendChild(element);
+
+  const blob = new Blob([file], { type: 'octet/stream' });
+  const url = window.URL.createObjectURL(blob);
+
+  element.href = url;
+  element.download = fileName + '.tif';
+  element.style = 'display: none';
+  element.click();
+  window.URL.revokeObjectURL(url);
 }

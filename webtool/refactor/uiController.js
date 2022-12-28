@@ -1,7 +1,7 @@
 import { scene, camera, canvas } from './threeDView.js';
 import { onPointerMove, onMouseClick, onWindowResize } from './interaction.js';
 import { importFile } from './import.js';
-import { saveProject } from './export.js';
+import { saveProject, exportProject } from './export.js';
 
 export function addEventHandlers() {
   //INTERACTION
@@ -55,8 +55,8 @@ export function addEventHandlers() {
   //SAVE PROJECT WIDGET
   const saveElement = document.getElementById('save');
   document
-    .getElementById('save_button')
-    .addEventListener('click', (event) => saveProject(event));
+    .getElementById('save_form')
+    .addEventListener('submit', (event) => saveProject(event));
   document.getElementById('open_save_button').addEventListener('click', () => {
     saveElement.style.display = 'block';
   });
@@ -70,8 +70,8 @@ export function addEventHandlers() {
   //EXPORT PROJECT WIDGET
   const exportElement = document.getElementById('export');
   document
-    .getElementById('export_button')
-    .addEventListener('click', (event) => exportProject(event));
+    .getElementById('export_form')
+    .addEventListener('submit', (event) => exportProject(event));
   document
     .getElementById('open_export_button')
     .addEventListener('click', () => {

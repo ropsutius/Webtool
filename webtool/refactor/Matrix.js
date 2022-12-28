@@ -33,6 +33,14 @@ export function getMatrix() {
   return matrix;
 }
 
+export function getMatrixToggles() {
+  return {
+    matrix: matrix.matrix.map((row) => row.map((point) => point.toggle)),
+    width: matrix.width,
+    height: matrix.height,
+  };
+}
+
 export function testMatrix(matrix) {
   if (matrix.length % matrix.layers == 0) {
     let length = matrix[0].length;
@@ -43,14 +51,6 @@ export function testMatrix(matrix) {
     }
     return true;
   } else return false;
-}
-
-export function getSaveData() {
-  let string = '';
-  for (let i = 0; i < y - 1; i++) {
-    string += matrix[i].toString() + ';';
-  }
-  return string + matrix[y - 1].toString();
 }
 
 export function getWarpPoints(currentPoint) {

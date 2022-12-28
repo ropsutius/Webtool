@@ -1,7 +1,7 @@
 import { init } from './app.js';
 
 export function importFile(event) {
-  event.preventDefault;
+  event.preventDefault();
 
   var file = event.target[0].files[0];
   if (!file) return;
