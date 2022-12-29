@@ -2,7 +2,7 @@ import { importWeaves } from '../services/weavesService.js';
 
 const weaves = await importWeaves();
 
-export async function initBlankWeave(matrix) {
+export function initBlankWeave(matrix) {
   for (let y = 0; y < matrix.height; y++) {
     matrix.matrix[y] = [];
     for (let x = 0; x < matrix.width; x++) {
@@ -15,7 +15,7 @@ export async function initBlankWeave(matrix) {
   }
 }
 
-export async function initPlainWeave(matrix, options) {
+export function initPlainWeave(matrix, options) {
   const weave = weaves[options.weave][matrix.layers - 1];
   for (let y = 0; y < matrix.height; y++) {
     matrix.matrix[y] = [];

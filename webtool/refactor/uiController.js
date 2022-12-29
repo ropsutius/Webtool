@@ -1,6 +1,6 @@
 import { scene, camera, canvas } from './threeDView.js';
 import { onPointerMove, onMouseClick, onWindowResize } from './interaction.js';
-import { importFile } from './import.js';
+import { createNewProject, importProject } from './import.js';
 import { saveProject, exportProject } from './export.js';
 
 export function addEventHandlers() {
@@ -13,16 +13,9 @@ export function addEventHandlers() {
 
   //IMPORT PROJECT WIDGET
   const importElement = document.getElementById('import');
-
   document
     .getElementById('import_form')
-    .addEventListener('submit', (event) => importFile(event));
-  /*document
-    .getElementById('import_button')
-    .addEventListener('click', (event) => importFile(event));
-  document
-    .getElementById('import_by_name_button')
-    .addEventListener('click', (event) => importFile(event));*/
+    .addEventListener('submit', (event) => importProject(event));
   document
     .getElementById('open_import_button')
     .addEventListener('click', () => {
@@ -40,8 +33,8 @@ export function addEventHandlers() {
   //NEW PROJECT WIDGET
   const newElement = document.getElementById('new');
   document
-    .getElementById('new_button')
-    .addEventListener('click', (event) => createNewProject(event));
+    .getElementById('new_form')
+    .addEventListener('submit', (event) => createNewProject(event));
   document.getElementById('open_new_button').addEventListener('click', () => {
     newElement.style.display = 'block';
   });

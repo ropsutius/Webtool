@@ -1,6 +1,8 @@
-import { init } from './app.js';
+import { initBlankWeave, initPlainWeave } from '../weaves/weaves.js';
+import { updateMatrix } from './Matrix.js';
+import { clearScene, populateScene } from './threeDView.js';
 
-export function importFile(event) {
+export function importProject(event) {
   event.preventDefault();
 
   var file = event.target[0].files[0];
@@ -9,18 +11,51 @@ export function importFile(event) {
   const reader = new FileReader();
   reader.onload = function (event) {
     const contents = event.target.result;
-    parseFile(contents);
+    const array = contents.split(';');
+
+    const matrix = array.map((row, y) =>
+      row.split(',').map((point, x) => ({
+        toggle: parseInt(point),
+        id: undefined,
+        coords: { x, y },
+      }))
+    );
+    const newMatrix = {
+      matrix,
+      height: matrix.length,
+      width: matrix[0].length,
+      layers: 1,
+    };
+
+    //UPDATE SCENE WITH THE NEW MATRIX
+    updateMatrix(newMatrix);
+    clearScene();
+    populateScene();
   };
+
   reader.readAsText(file);
 }
 
-function parseFile(contents) {
-  const array = contents.split(';');
-  for (let i = 0; i < array.length; i++) {
-    array[i] = array[i].split(',');
-    for (let k = 0; k < array[i].length; k++) {
-      array[i][k] = parseInt(array[i][k]);
-    }
+export function createNewProject(event) {
+  event.preventDefault();
+
+  const layers = parseInt(event.target[0].value);
+  const weave = event.target[1].value;
+  const width = parseInt(event.target[2].value);
+  const height = parseInt(event.target[3].value);
+
+  const newMatrix = { matrix: [], width, height, layers };
+
+  switch (weave) {
+    case 'blank':
+      initBlankWeave(newMatrix);
+      break;
+    case 'plain':
+      initPlainWeave(newMatrix, { weave });
+      break;
   }
-  //init({ layers: 1, width: 30, height: 30, weave: 'plain' });
+
+  updateMatrix(newMatrix);
+  clearScene();
+  populateScene();
 }

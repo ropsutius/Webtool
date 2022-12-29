@@ -10,7 +10,7 @@ const okList = [
   ['0000', '1000', '1100', '1110', '1111'],
 ];
 
-export async function initMatrix(options) {
+export function initMatrix(options) {
   matrix.height = options.height;
   matrix.width = options.width;
   matrix.layers = options.layers;
@@ -20,17 +20,27 @@ export async function initMatrix(options) {
 
   switch (options.weave) {
     case 'blank':
-      await initBlankWeave(matrix);
+      initBlankWeave(matrix);
       break;
 
     case 'plain':
-      await initPlainWeave(matrix, options);
+      initPlainWeave(matrix, options);
       break;
   }
 }
 
 export function getMatrix() {
   return matrix;
+}
+
+export function updateMatrix(newMatrix) {
+  matrix.matrix = newMatrix.matrix;
+  matrix.height = newMatrix.height;
+  matrix.width = newMatrix.width;
+  matrix.layers = newMatrix.layers;
+
+  matrix.changedPoints = [];
+  matrix.hoveredOverPoints = [];
 }
 
 export function getMatrixToggles() {
@@ -41,6 +51,7 @@ export function getMatrixToggles() {
   };
 }
 
+//not used
 export function testMatrix(matrix) {
   if (matrix.length % matrix.layers == 0) {
     let length = matrix[0].length;

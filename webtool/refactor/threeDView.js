@@ -7,7 +7,7 @@ import { updateTubeColors } from './interaction.js';
 
 export let canvas, scene, renderer, controls, camera, matrix;
 
-export async function initScene() {
+export function initScene() {
   scene = new THREE.Scene();
   scene.background = new THREE.Color(Materials.backgroundColor);
 
@@ -17,6 +17,10 @@ export async function initScene() {
   renderer.setSize(canvas.offsetWidth, canvas.offsetHeight);
   canvas.appendChild(renderer.domElement);
 
+  populateScene();
+}
+
+export function populateScene() {
   matrix = Matrix.getMatrix();
 
   const center = {
@@ -36,6 +40,7 @@ export async function initScene() {
   axesHelper.translateY(matrix.layers * Geometry.layerOffset + 10);
   scene.add(axesHelper);
 
+  console.log(matrix);
   for (let i = 0; i < matrix.width; i++) {
     for (let k = 0; k < matrix.height; k++) {
       const point = Matrix.getPointByCoordinates({ x: i, y: k });
@@ -57,6 +62,10 @@ export async function initScene() {
 
   console.log(scene);
   console.log(matrix.matrix);
+}
+
+export function clearScene() {
+  scene.remove.apply(scene, scene.children);
 }
 
 export function animate() {
