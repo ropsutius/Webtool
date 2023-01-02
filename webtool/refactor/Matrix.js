@@ -54,45 +54,50 @@ export function updateLayers(layers) {
 
 //not used
 function testMatrix(matrix) {
-  if (matrix.length % matrix.layers == 0) {
-    let length = matrix[0].length;
-    for (let i = 1; i < matrix.length; i++) {
-      if (matrix[i].length != length) {
-        return false;
-      }
-    }
-    return true;
-  } else return false;
+  if (matrix.height % matrix.layers !== 0 || matrix.width % matrix.layers !== 0)
+    return false;
+
+  for (let i = 1; i < matrix.height; i++) {
+    if (matrix[i].length !== matrix.width) return false;
+  }
+
+  return true;
 }
 
 export function getWarpPoints(currentPoint) {
   const currentPointHeight = getHeight(currentPoint);
   if (currentPointHeight === null) return;
 
-  let previousPoint = getPointInPreviousSet(currentPoint);
-  let previousPointHeight;
-  if (previousPoint !== null) previousPointHeight = getHeight(previousPoint);
-  else
-    previousPointHeight =
-      matrix.layers - (currentPoint.coords.x % matrix.layers) - 1;
+  const previousPoint = getPointByCoordinates({
+    y: currentPoint.coords.y - matrix.layers,
+    x: currentPoint.coords.x,
+  });
 
-  const warp = matrix.layers - (currentPoint.coords.x % matrix.layers) - 1;
+  const warpHeight =
+    matrix.layers - (currentPoint.coords.x % matrix.layers) - 1;
+
+  const previousPointHeight =
+    previousPoint !== null ? getHeight(previousPoint) : warpHeight;
 
   let previousPointY =
-    Geometry.warpHeight * previousPointHeight + warp * Geometry.layerOffset;
+    Geometry.warpHeight * previousPointHeight +
+    warpHeight * Geometry.layerOffset;
   let currentPointY =
-    Geometry.warpHeight * currentPointHeight + warp * Geometry.layerOffset;
+    Geometry.warpHeight * currentPointHeight +
+    warpHeight * Geometry.layerOffset;
 
-  if (currentPointHeight < warp) {
-    currentPointY -= (warp - currentPointHeight) * Geometry.layerOffset;
-  } else if (currentPointHeight > warp + 1) {
-    currentPointY += (currentPointHeight - warp - 1) * Geometry.layerOffset;
+  if (currentPointHeight < warpHeight) {
+    currentPointY -= (warpHeight - currentPointHeight) * Geometry.layerOffset;
+  } else if (currentPointHeight > warpHeight + 1) {
+    currentPointY +=
+      (currentPointHeight - warpHeight - 1) * Geometry.layerOffset;
   }
 
-  if (previousPointHeight < warp) {
-    previousPointY -= (warp - previousPointHeight) * Geometry.layerOffset;
-  } else if (previousPointHeight > warp + 1) {
-    previousPointY += (previousPointHeight - warp - 1) * Geometry.layerOffset;
+  if (previousPointHeight < warpHeight) {
+    previousPointY -= (warpHeight - previousPointHeight) * Geometry.layerOffset;
+  } else if (previousPointHeight > warpHeight + 1) {
+    previousPointY +=
+      (previousPointHeight - warpHeight - 1) * Geometry.layerOffset;
   }
 
   let middleY =
@@ -145,6 +150,14 @@ export function getMatrixToggles() {
   };
 }
 
+function getSetString(point) {
+  const set = getSetOfPoints(point);
+  return set.points.reduce(
+    (string, point) => (string += point.toggle.toString()),
+    ''
+  );
+}
+
 function getHeight(point) {
   const string = getSetString(point);
   return pointRegex.test(string) ? string.lastIndexOf('1') + 1 : null;
@@ -169,14 +182,6 @@ function getSetOfPoints(point) {
   return { points: set, primePointIndex, length: set.length };
 }
 
-function getSetString(point) {
-  const set = getSetOfPoints(point);
-  return set.points.reduce(
-    (string, point) => (string += point.toggle.toString()),
-    ''
-  );
-}
-
 export function isPrimePoint(point) {
   return (
     (point.coords.x % matrix.layers) + (point.coords.y % matrix.layers) ===
@@ -185,20 +190,16 @@ export function isPrimePoint(point) {
 }
 
 function getPointByCoordinates(coords) {
-  return matrix.matrix[coords.y][coords.x];
+  return -1 < coords.x &&
+    coords.x < matrix.width &&
+    -1 < coords.y &&
+    coords.y < matrix.height
+    ? matrix.matrix[coords.y][coords.x]
+    : null;
 }
 
 export function getPointById(id) {
   return matrix.matrix.flat().find((point) => point.id === id);
-}
-
-function getPointInPreviousSet(point) {
-  return point.coords.y < matrix.layers
-    ? null
-    : getPointByCoordinates({
-        y: point.coords.y - matrix.layers,
-        x: point.coords.x,
-      });
 }
 
 export function getPointInNextSet(point) {
