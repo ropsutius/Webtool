@@ -3,12 +3,8 @@ import { clearScene, populateScene, scene } from './threeDView.js';
 import { initBlankWeave, initPlainWeave } from '../weaves/weaves.js';
 
 const matrix = {};
-const okList = [
-  ['0', '1'],
-  ['00', '10', '11'],
-  ['000', '100', '110', '111'],
-  ['0000', '1000', '1100', '1110', '1111'],
-];
+
+const pointRegex = new RegExp(/^1*0*$/);
 
 export function initMatrix(options) {
   matrix.height = options.height;
@@ -151,9 +147,7 @@ export function getMatrixToggles() {
 
 function getHeight(point) {
   const string = getSetString(point);
-  return okList[matrix.layers - 1].includes(string)
-    ? okList[matrix.layers - 1].indexOf(string)
-    : null;
+  return pointRegex.test(string) ? string.lastIndexOf('1') + 1 : null;
 }
 
 function getSetString(point) {
@@ -263,10 +257,10 @@ export function rotateToggle(point) {
 export function tryToggle(point) {
   point.toggle = point.toggle === 0 ? 1 : 0;
 
-  let string = getSetString(point);
-  if (!okList[matrix.layers - 1].includes(string))
-    point.toggle = point.toggle === 0 ? 1 : 0;
-  else matrix.changedPoints.push(point);
+  const string = getSetString(point);
+
+  if (pointRegex.test(string)) matrix.changedPoints.push(point);
+  else point.toggle = point.toggle === 0 ? 1 : 0;
 }
 
 export function updateTubeHeights() {
