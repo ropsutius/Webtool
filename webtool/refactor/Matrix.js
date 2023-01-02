@@ -1,5 +1,5 @@
 import * as Geometry from './Geometry.js';
-import { scene } from './threeDView.js';
+import { clearScene, populateScene, scene } from './threeDView.js';
 import { initBlankWeave, initPlainWeave } from '../weaves/weaves.js';
 
 const matrix = {};
@@ -43,12 +43,17 @@ export function updateMatrix(newMatrix) {
   matrix.hoveredOverPoints = [];
 }
 
-export function getMatrixToggles() {
-  return {
-    matrix: matrix.matrix.map((row) => row.map((point) => point.toggle)),
-    width: matrix.width,
-    height: matrix.height,
-  };
+function clearMatrixIds() {
+  matrix.matrix.map((row) => row.map((point) => (point.id = undefined)));
+}
+
+export function updateLayers(layers) {
+  if (layers === 4) matrix.layers = 1;
+  else matrix.layers += 1;
+
+  clearMatrixIds();
+  clearScene();
+  populateScene();
 }
 
 //not used
@@ -65,7 +70,7 @@ export function testMatrix(matrix) {
 }
 
 export function getWarpPoints(currentPoint) {
-  let currentPointHeight = getHeight(currentPoint);
+  const currentPointHeight = getHeight(currentPoint);
   if (currentPointHeight === null) return;
 
   let previousPoint = getPreviousSet(currentPoint);
@@ -75,7 +80,8 @@ export function getWarpPoints(currentPoint) {
     previousPointHeight =
       matrix.layers - (currentPoint.coords.x % matrix.layers) - 1;
 
-  let warp = matrix.layers - (currentPoint.coords.x % matrix.layers) - 1;
+  const warp = matrix.layers - (currentPoint.coords.x % matrix.layers) - 1;
+
   let previousPointY =
     Geometry.warpHeight * previousPointHeight + warp * Geometry.layerOffset;
   let currentPointY =
@@ -96,10 +102,12 @@ export function getWarpPoints(currentPoint) {
   let middleY =
     Math.abs(currentPointY - previousPointY) / 2 +
     Math.min(previousPointY, currentPointY);
+
   const x =
     ((currentPoint.coords.x - (currentPoint.coords.x % matrix.layers)) /
       matrix.layers) *
     Geometry.weftLength;
+
   const z =
     ((currentPoint.coords.y - (currentPoint.coords.y % matrix.layers)) /
       matrix.layers) *
@@ -133,8 +141,16 @@ export function* getWeftPoints() {
   }
 }
 
+export function getMatrixToggles() {
+  return {
+    matrix: matrix.matrix.map((row) => row.map((point) => point.toggle)),
+    width: matrix.width,
+    height: matrix.height,
+  };
+}
+
 function getHeight(point) {
-  let string = getSetString(point);
+  const string = getSetString(point);
   return okList[matrix.layers - 1].includes(string)
     ? okList[matrix.layers - 1].indexOf(string)
     : null;
@@ -255,21 +271,21 @@ export function tryToggle(point) {
 
 export function updateTubeHeights() {
   for (const point of matrix.changedPoints) {
-    const curve = getWarpPoints(getPrimePoint(point));
-    if (!curve) continue;
+    const currentPrimePoint = getPrimePoint(point);
+    const currentCurve = getWarpPoints(currentPrimePoint);
+    if (!currentCurve) continue;
 
-    const tube = scene.getObjectById(point.id);
-    console.log(point, tube, curve);
-    Geometry.updateTube(tube, curve);
+    const currentTube = scene.getObjectById(currentPrimePoint.id);
+    Geometry.updateTube(currentTube, currentCurve);
 
-    const nextPoint = getNextSet(point);
-    if (nextPoint) {
-      const nextCurve = getWarpPoints(getPrimePoint(nextPoint));
-      if (!nextCurve) continue;
+    const nextPoint = getNextSet(currentPrimePoint);
+    if (!nextPoint) continue;
+    const nextPrimePoint = getPrimePoint(nextPoint);
+    const nextCurve = getWarpPoints(nextPrimePoint);
+    if (!nextCurve) continue;
 
-      const nextTube = scene.getObjectById(nextPoint.id);
-      Geometry.updateTube(nextTube, nextCurve);
-    }
+    const nextTube = scene.getObjectById(nextPrimePoint.id);
+    Geometry.updateTube(nextTube, nextCurve);
   }
   matrix.changedPoints = [];
 }

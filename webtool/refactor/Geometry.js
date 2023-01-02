@@ -16,7 +16,7 @@ export const tubeRadialSegments = 8;
 export const layerOffset = 5;
 
 export function getTubeFromCurve(curve, type) {
-  if (curve === null) {
+  if (!curve) {
     curve = [new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 0)];
     type = 'Warp';
   }

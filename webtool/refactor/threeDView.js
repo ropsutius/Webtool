@@ -4,6 +4,8 @@ import * as Geometry from './Geometry.js';
 import { initControls } from './controls.js';
 import { initCamera } from './camera.js';
 import { updateTubeColors } from './interaction.js';
+import { addAxesHelpers } from './helpers.js';
+import { addLights } from './lights.js';
 
 export let canvas, scene, renderer, controls, camera, matrix;
 
@@ -11,7 +13,7 @@ export function initScene() {
   scene = new THREE.Scene();
   scene.background = new THREE.Color(Materials.backgroundColor);
 
-  canvas = document.getElementById('threeD-view');
+  canvas = document.getElementById('3d-view');
 
   renderer = new THREE.WebGLRenderer();
   renderer.setSize(canvas.offsetWidth, canvas.offsetHeight);
@@ -31,25 +33,16 @@ export function populateScene() {
 
   camera = initCamera(canvas, center);
   controls = initControls(camera, renderer, center);
+  addLights(scene);
+  addAxesHelpers(scene);
 
-  let light = new THREE.HemisphereLight(Materials.lightColor);
-  light.position.y = -10;
-  scene.add(light);
-
-  let axesHelper = new THREE.AxesHelper(5);
-  axesHelper.translateY(matrix.layers * Geometry.layerOffset + 10);
-  scene.add(axesHelper);
-
-  console.log(matrix);
-  for (let i = 0; i < matrix.width; i++) {
-    for (let k = 0; k < matrix.height; k++) {
-      const point = Matrix.getPointByCoordinates({ x: i, y: k });
+  for (const [y, row] of matrix.matrix.entries()) {
+    for (const [x, point] of row.entries()) {
       if (!Matrix.isPrimePoint(point)) continue;
 
       const curve = Matrix.getWarpPoints(point);
       const tube = Geometry.getTubeFromCurve(curve, 'Warp');
-      const newPoint = { ...matrix.matrix[k][i], id: tube.id };
-      matrix.matrix[k][i] = newPoint;
+      matrix.matrix[y][x] = { ...point, id: tube.id };
       scene.add(tube);
     }
   }

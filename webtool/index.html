@@ -16,48 +16,32 @@
     <div id="new" class="modal">
       <div class="modal-content">
         <div class="modal-header">
-          <span id="close_new_span" class="close">&times;</span>
+          <span id="close-new-span" class="close">&times;</span>
           <h2>Create New Canvas</h2>
         </div>
         <div class="modal-body">
-          <form id="new_form">
-            <select name="layers" id="layers">
+          <form id="new-form">
+            <select>
               <option value="1" selected>Single</option>
               <option value="2">Double</option>
               <option value="3">Triple</option>
               <option value="4">Quadruple</option>
             </select>
             <br />
-            <select name="weave" id="weave">
+            <select name="weave">
               <option value="blank" selected>Blank</option>
               <option value="plain">Plain weave</option>
             </select>
             <br />
             <label for="width">Width:</label>
-            <input
-              id="width"
-              type="number"
-              name="width"
-              min="1"
-              max="1000"
-              value="10"
-              required
-            />
+            <input type="number" min="1" max="1000" value="10" required />
             <label for="height">Height:</label>
-            <input
-              id="height"
-              type="number"
-              name="height"
-              min="1"
-              max="1000"
-              value="10"
-              required
-            />
+            <input type="number" min="1" max="1000" value="10" required />
             <br />
-            <button id="new_button" type="submit" class="btn">
+            <button id="new-button" type="submit" class="btn">
               Create Canvas
             </button>
-            <button id="close_new_button" type="button" class="btn">
+            <button id="close-new-button" type="button" class="btn">
               Cancel
             </button>
           </form>
@@ -68,16 +52,16 @@
     <div id="import" class="modal download">
       <div class="modal-content">
         <div class="modal-header">
-          <span id="close_import_span" class="close">&times;</span>
+          <span id="close-import-span" class="close">&times;</span>
           <h2>Open Project file</h2>
         </div>
         <div class="modal-body">
-          <form id="import_form">
+          <form id="import-form">
             <label for="name">Choose a file: </label>
-            <input id="import_by_name_button" type="file" name="name" />
+            <input id="import-by-name-button" type="file" name="name" />
             <br />
-            <button id="import_button" type="submit" class="btn">Open</button>
-            <button id="close_import_button" type="button" class="btn">
+            <button id="import-button" type="submit" class="btn">Open</button>
+            <button id="close-import-button" type="button" class="btn">
               Cancel
             </button>
           </form>
@@ -88,16 +72,16 @@
     <div id="save" class="modal download">
       <div class="modal-content">
         <div class="modal-header">
-          <span id="close_save_span" class="close">&times;</span>
+          <span id="close-save-span" class="close">&times;</span>
           <h2>Save Project as a Text File</h2>
         </div>
         <div class="modal-body">
-          <form id="save_form">
+          <form id="save-form">
             <input type="text" name="name" />
             <label for="name">.txt</label>
             <br />
             <button type="submit" class="btn">Download</button>
-            <button id="close_save_button" type="button" class="btn">
+            <button id="close-save-button" type="button" class="btn">
               Cancel
             </button>
           </form>
@@ -108,16 +92,16 @@
     <div id="export" class="modal download">
       <div class="modal-content">
         <div class="modal-header">
-          <span id="close_export_span" class="close">&times;</span>
+          <span id="close-export-span" class="close">&times;</span>
           <h2>Export Project as TIF-file</h2>
         </div>
         <div class="modal-body">
-          <form id="export_form">
+          <form id="export-form">
             <input type="text" name="name" />
             <label for="name">.tif</label>
             <br />
             <button type="submit" class="btn">Download</button>
-            <button id="close_export_button" type="button" class="btn">
+            <button id="close-export-button" type="button" class="btn">
               Cancel
             </button>
           </form>
@@ -129,10 +113,10 @@
       <div class="dropdown">
         <button class="dropbtn">File</button>
         <div class="dropdown-content">
-          <a id="open_new_button">New</a>
-          <a id="open_import_button">Open</a>
-          <a id="open_save_button">Save</a>
-          <a id="open_export_button">Export</a>
+          <a id="open-new-button">New</a>
+          <a id="open-import-button">Open</a>
+          <a id="open-save-button">Save</a>
+          <a id="open-export-button">Export</a>
         </div>
       </div>
 
@@ -141,23 +125,23 @@
         <div class="dropdown-content">
           <a href="#">Undo (N/A)</a> <a href="#">Redo (N/A)</a>
           <a href="#">Copy (N/A)</a> <a href="#">Cut (N/A)</a>
-          <a href="#">Paste (N/A)</a> <a onclick="app.loadLayer()">Layers</a>
+          <a href="#">Paste (N/A)</a> <a id="layers-button">Layers</a>
         </div>
       </div>
 
       <div class="dropdown">
         <button class="dropbtn">View</button>
         <div class="dropdown-content">
-          <a onclick="app.toDualView()">Dual view</a>
-          <a onclick="app.toPixelView()">Pixel view</a>
-          <a onclick="app.to3dView()">3D view</a>
+          <a id="to-dual-view-button">Dual view</a>
+          <a id="to-pixel-view-button">Pixel view</a>
+          <a id="to-3d-view-button">3D view</a>
         </div>
       </div>
     </div>
 
     <div class="toolbar"><a href="#">P</a> <a href="#">M</a></div>
 
-    <div id="threeD-view" class="webgl-content"></div>
+    <div id="3d-view" class="webgl-content"></div>
     <div id="pixel-view" class="webgl-content"></div>
   </body>
 </html>
