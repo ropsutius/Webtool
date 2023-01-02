@@ -26,7 +26,7 @@ export function onMouseClick() {
 
   for (const { object } of intersects) {
     if (object.name === 'Warp') {
-      Matrix.rotateToggle(Matrix.getPointById(object.id));
+      Matrix.updateToggleOfSet(Matrix.getPointById(object.id));
       break;
     }
   }
@@ -45,7 +45,7 @@ export function updateTubeColors() {
     if (object.name !== 'Warp') continue;
 
     const point = Matrix.getPointById(object.id);
-    const nextPoint = Matrix.getNextSet(point);
+    const nextPoint = Matrix.getPointInNextSet(point);
     if (nextPoint !== null) {
       const nextObject = scene.getObjectById(nextPoint.id);
       nextObject.material.color.set(Materials.tubeHighlightColor);

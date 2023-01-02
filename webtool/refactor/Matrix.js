@@ -53,7 +53,7 @@ export function updateLayers(layers) {
 }
 
 //not used
-export function testMatrix(matrix) {
+function testMatrix(matrix) {
   if (matrix.length % matrix.layers == 0) {
     let length = matrix[0].length;
     for (let i = 1; i < matrix.length; i++) {
@@ -69,7 +69,7 @@ export function getWarpPoints(currentPoint) {
   const currentPointHeight = getHeight(currentPoint);
   if (currentPointHeight === null) return;
 
-  let previousPoint = getPreviousSet(currentPoint);
+  let previousPoint = getPointInPreviousSet(currentPoint);
   let previousPointHeight;
   if (previousPoint !== null) previousPointHeight = getHeight(previousPoint);
   else
@@ -150,23 +150,31 @@ function getHeight(point) {
   return pointRegex.test(string) ? string.lastIndexOf('1') + 1 : null;
 }
 
-function getSetString(point) {
-  let startPoint = getStartPoint(point);
-  let string = startPoint.toggle.toString();
-
-  for (let i = 1; i < matrix.layers; i++) {
-    startPoint = getNextPointInSet(startPoint);
-    string += startPoint.toggle.toString();
+function getSetOfPoints(point) {
+  const set = [];
+  let primePointIndex;
+  const startPoint =
+    matrix.matrix[point.coords.y - (point.coords.y % matrix.layers)][
+      point.coords.x
+    ];
+  for (let i = 0; i < matrix.layers; i++) {
+    set.push(matrix.matrix[startPoint.coords.y + i][startPoint.coords.x]);
+    if (
+      isPrimePoint(matrix.matrix[startPoint.coords.y + i][startPoint.coords.x])
+    ) {
+      primePointIndex = i;
+    }
   }
-  return string;
+
+  return { points: set, primePointIndex, length: set.length };
 }
 
-function isStartPoint(point) {
-  return point.coords.y % matrix.layers === 0;
-}
-
-export function isLastPoint(point) {
-  return point.coords.y % matrix.layers === matrix.layers - 1;
+function getSetString(point) {
+  const set = getSetOfPoints(point);
+  return set.points.reduce(
+    (string, point) => (string += point.toggle.toString()),
+    ''
+  );
 }
 
 export function isPrimePoint(point) {
@@ -176,7 +184,7 @@ export function isPrimePoint(point) {
   );
 }
 
-export function getPointByCoordinates(coords) {
+function getPointByCoordinates(coords) {
   return matrix.matrix[coords.y][coords.x];
 }
 
@@ -184,41 +192,7 @@ export function getPointById(id) {
   return matrix.matrix.flat().find((point) => point.id === id);
 }
 
-export function getPrimePoint(point) {
-  while (!isPrimePoint(point)) {
-    point = getNextPointInSet(point);
-  }
-  return point;
-}
-
-function getStartPoint(point) {
-  if (isStartPoint(point)) return point;
-
-  for (let i = 1; i < matrix.layers; i++) {
-    point = getNextPointInSet(point);
-    if (isStartPoint(point)) return point;
-  }
-}
-
-export function getPreviousPointInSet(point) {
-  return !isStartPoint(point)
-    ? getPointByCoordinates({ x: point.coords.x, y: point.coords.y - 1 })
-    : getPointByCoordinates({
-        x: point.coords.x,
-        y: point.coords.y + matrix.layers - 1,
-      });
-}
-
-export function getNextPointInSet(point) {
-  return !isLastPoint(point)
-    ? getPointByCoordinates({ x: point.coords.x, y: point.coords.y + 1 })
-    : getPointByCoordinates({
-        x: point.coords.x,
-        y: point.coords.y - matrix.layers + 1,
-      });
-}
-
-function getPreviousSet(point) {
+function getPointInPreviousSet(point) {
   return point.coords.y < matrix.layers
     ? null
     : getPointByCoordinates({
@@ -227,7 +201,7 @@ function getPreviousSet(point) {
       });
 }
 
-export function getNextSet(point) {
+export function getPointInNextSet(point) {
   return point.coords.y > matrix.height - matrix.layers - 1
     ? null
     : getPointByCoordinates({
@@ -236,50 +210,47 @@ export function getNextSet(point) {
       });
 }
 
-export function rotateToggle(point) {
-  let startPoint = getStartPoint(point);
-  for (let i = 0; i < matrix.layers; i++) {
-    if (startPoint.toggle === 0) {
-      tryToggle(startPoint);
-      return;
-    }
-    startPoint = getNextPointInSet(startPoint);
-  }
-  let previousPoint = getPreviousPointInSet(startPoint);
-  for (let i = 0; i < matrix.layers; i++) {
-    if (previousPoint.toggle === 1) {
-      tryToggle(previousPoint);
-    }
-    previousPoint = getPreviousPointInSet(previousPoint);
-  }
+export function getNextSet(set) {
+  const lastPoint = set.points[set.length - 1];
+  if (!matrix.matrix[lastPoint.coords.y + 1]) return null;
+
+  return getSetOfPoints(
+    matrix.matrix[lastPoint.coords.y + 1][lastPoint.coords.x]
+  );
 }
 
-export function tryToggle(point) {
-  point.toggle = point.toggle === 0 ? 1 : 0;
-
+export function updateToggleOfSet(point) {
   const string = getSetString(point);
+  const index = string.lastIndexOf('1');
+  const set = getSetOfPoints(point);
 
-  if (pointRegex.test(string)) matrix.changedPoints.push(point);
-  else point.toggle = point.toggle === 0 ? 1 : 0;
+  if (index === set.length - 1) {
+    for (point of set.points) {
+      point.toggle = 0;
+      matrix.changedPoints.push(point);
+    }
+  } else {
+    set.points[index + 1].toggle = 1;
+    matrix.changedPoints.push(set.points[index + 1]);
+  }
 }
 
 export function updateTubeHeights() {
   for (const point of matrix.changedPoints) {
-    const currentPrimePoint = getPrimePoint(point);
-    const currentCurve = getWarpPoints(currentPrimePoint);
-    if (!currentCurve) continue;
+    const set = getSetOfPoints(point);
+    updateTubeOfSet(set);
 
-    const currentTube = scene.getObjectById(currentPrimePoint.id);
-    Geometry.updateTube(currentTube, currentCurve);
-
-    const nextPoint = getNextSet(currentPrimePoint);
-    if (!nextPoint) continue;
-    const nextPrimePoint = getPrimePoint(nextPoint);
-    const nextCurve = getWarpPoints(nextPrimePoint);
-    if (!nextCurve) continue;
-
-    const nextTube = scene.getObjectById(nextPrimePoint.id);
-    Geometry.updateTube(nextTube, nextCurve);
+    const nextSet = getNextSet(set);
+    if (!nextSet) continue;
+    updateTubeOfSet(nextSet);
   }
   matrix.changedPoints = [];
+}
+
+function updateTubeOfSet(set) {
+  const primePoint = set.points[set.primePointIndex];
+  const curve = getWarpPoints(primePoint);
+
+  const tube = scene.getObjectById(primePoint.id);
+  Geometry.updateTube(tube, curve);
 }
