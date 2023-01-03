@@ -1,8 +1,9 @@
-import * as App from './app.js';
 import * as Matrix from './Matrix.js';
 import * as Geometry from './Geometry.js';
 
-export function initCamera(canvas, center) {
+export const camFactor = 3;
+
+export function initPerspectiveCamera(canvas, center) {
   const matrix = Matrix.getMatrix();
   const cameraPosition = {
     x: center.x,
@@ -18,6 +19,20 @@ export function initCamera(canvas, center) {
   );
 
   camera.position.set(cameraPosition.x, cameraPosition.y, cameraPosition.z);
+
+  return camera;
+}
+
+export function initOrthographicCamera(canvas, center) {
+  const camera = new THREE.OrthographicCamera(
+    canvas.offsetWidth / -camFactor,
+    canvas.offsetWidth / camFactor,
+    canvas.offsetHeight / camFactor,
+    canvas.offsetHeight / -camFactor,
+    1,
+    10000
+  );
+  camera.position.set(center.x, center.y, center.z);
 
   return camera;
 }

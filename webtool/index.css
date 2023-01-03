@@ -10,11 +10,18 @@ body {
 
 /** ---CANVAS--- **/
 
+#canvas {
+  display:block;
+  float:right;
+  width:calc(100% - 46px);
+  height: calc(100% - 26px);
+}
+
 .webgl-content {
   display: block;
   float: left;
   width: 50%;
-  height: calc(100% - 26px);
+  height: 100%;
 }
 
 /** ---NAVBAR--- **/

@@ -8,7 +8,8 @@ export function initBlankWeave(matrix) {
     for (let x = 0; x < matrix.width; x++) {
       matrix.matrix[y][x] = {
         toggle: 0,
-        id: undefined,
+        threeDId: undefined,
+        pixelId: undefined,
         coords: { x, y },
       };
     }
@@ -22,7 +23,8 @@ export function initPlainWeave(matrix, options) {
     for (let x = 0; x < matrix.width; x++) {
       matrix.matrix[y][x] = {
         toggle: weave[y % weave.length][x % weave.length],
-        id: undefined,
+        threeDId: undefined,
+        pixelId: undefined,
         coords: { x, y },
       };
     }

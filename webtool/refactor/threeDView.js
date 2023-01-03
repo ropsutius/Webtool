@@ -1,8 +1,8 @@
 import * as Matrix from './Matrix.js';
 import * as Materials from './Materials.js';
 import * as Geometry from './Geometry.js';
-import { initControls } from './controls.js';
-import { initCamera } from './camera.js';
+import { initThreeDControls } from './controls.js';
+import { initPerspectiveCamera } from './camera.js';
 import { updateTubeColors } from './interaction.js';
 import { addAxesHelpers } from './helpers.js';
 import { addLights } from './lights.js';
@@ -31,8 +31,8 @@ export function populateScene() {
     z: (matrix.height * Geometry.warpLength) / 2 / matrix.layers,
   };
 
-  camera = initCamera(canvas, center);
-  controls = initControls(camera, renderer, center);
+  camera = initPerspectiveCamera(canvas, center);
+  controls = initThreeDControls(camera, renderer, center);
   addLights(scene);
   addAxesHelpers(scene);
 
@@ -42,7 +42,7 @@ export function populateScene() {
 
       const curve = Matrix.getWarpPoints(point);
       const tube = Geometry.getTubeFromCurve(curve, 'Warp');
-      matrix.matrix[y][x] = { ...point, id: tube.id };
+      matrix.matrix[y][x] = { ...point, threeDId: tube.id };
       scene.add(tube);
     }
   }

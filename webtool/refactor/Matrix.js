@@ -1,5 +1,6 @@
 import * as Geometry from './Geometry.js';
-import { clearScene, populateScene, scene } from './threeDView.js';
+import * as ThreeDView from './threeDView.js';
+import * as PixelView from './pixelView.js';
 import { initBlankWeave, initPlainWeave } from '../weaves/weaves.js';
 
 const matrix = {};
@@ -11,7 +12,7 @@ export function initMatrix(options) {
   matrix.width = options.width;
   matrix.layers = options.layers;
   matrix.matrix = [];
-  matrix.changedPoints = [];
+  matrix.changedPoints = { tubes: [], pixels: [] };
   matrix.hoveredOverPoints = [];
 
   switch (options.weave) {
@@ -40,7 +41,7 @@ export function updateMatrix(newMatrix) {
 }
 
 function clearMatrixIds() {
-  matrix.matrix.map((row) => row.map((point) => (point.id = undefined)));
+  matrix.matrix.map((row) => row.map((point) => (point.threeDId = undefined)));
 }
 
 export function updateLayers(layers) {
@@ -48,8 +49,8 @@ export function updateLayers(layers) {
   else matrix.layers += 1;
 
   clearMatrixIds();
-  clearScene();
-  populateScene();
+  ThreeDView.clearScene();
+  PixelView.populateScene();
 }
 
 //not used
@@ -199,7 +200,9 @@ function getPointByCoordinates(coords) {
 }
 
 export function getPointById(id) {
-  return matrix.matrix.flat().find((point) => point.id === id);
+  return matrix.matrix
+    .flat()
+    .find((point) => point.threeDId === id || point.pixelId === id);
 }
 
 export function getPointInNextSet(point) {
@@ -228,16 +231,18 @@ export function updateToggleOfSet(point) {
   if (index === set.length - 1) {
     for (point of set.points) {
       point.toggle = 0;
-      matrix.changedPoints.push(point);
+      matrix.changedPoints.tubes.push(point);
+      matrix.changedPoints.pixels.push(point);
     }
   } else {
     set.points[index + 1].toggle = 1;
-    matrix.changedPoints.push(set.points[index + 1]);
+    matrix.changedPoints.tubes.push(set.points[index + 1]);
+    matrix.changedPoints.pixels.push(set.points[index + 1]);
   }
 }
 
 export function updateTubeHeights() {
-  for (const point of matrix.changedPoints) {
+  for (const point of matrix.changedPoints.tubes) {
     const set = getSetOfPoints(point);
     updateTubeOfSet(set);
 
@@ -245,13 +250,29 @@ export function updateTubeHeights() {
     if (!nextSet) continue;
     updateTubeOfSet(nextSet);
   }
-  matrix.changedPoints = [];
+  matrix.changedPoints.tubes = [];
+}
+
+export function updatePixelColors() {
+  for (const point of matrix.changedPoints.pixels) {
+    const set = getSetOfPoints(point);
+    updatePixelColorOfSet(set);
+  }
+  matrix.changedPoints.pixels = [];
 }
 
 function updateTubeOfSet(set) {
   const primePoint = set.points[set.primePointIndex];
   const curve = getWarpPoints(primePoint);
 
-  const tube = scene.getObjectById(primePoint.id);
+  const tube = ThreeDView.scene.getObjectById(primePoint.threeDId);
   Geometry.updateTube(tube, curve);
+}
+
+function updatePixelColorOfSet(set) {
+  for (const point of set.points) {
+    PixelView.scene
+      .getObjectById(point.pixelId)
+      .material.color.set(PixelView.getPixelColor(point));
+  }
 }

@@ -14,6 +14,8 @@ export const tubeRadius = 1;
 export const tubeSegments = 32;
 export const tubeRadialSegments = 8;
 export const layerOffset = 5;
+export const size = 10;
+export const lineWidth = 1;
 
 export function getTubeFromCurve(curve, type) {
   if (!curve) {

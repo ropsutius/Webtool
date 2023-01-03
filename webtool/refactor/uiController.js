@@ -1,4 +1,5 @@
-import { scene, camera, canvas } from './threeDView.js';
+import * as ThreeDView from './threeDView.js';
+import * as PixelView from './pixelView.js';
 import { onPointerMove, onMouseClick, onWindowResize } from './interaction.js';
 import { createNewProject, importProject } from './import.js';
 import { saveProject, exportProject } from './export.js';
@@ -8,15 +9,20 @@ const threeDView = document.getElementById('3d-view');
 const pixelView = document.getElementById('pixel-view');
 
 export function addEventHandlers() {
-  //GO STRAIGHT TO 3D VIEW
-  to3dView();
-
   //INTERACTION
+  const canvas = document.getElementById('canvas');
   canvas.addEventListener('pointermove', (event) =>
     onPointerMove(event, canvas)
   );
-  canvas.addEventListener('click', () => onMouseClick(scene, camera));
-  window.addEventListener('resize', () => onWindowResize(canvas));
+
+  ThreeDView.canvas.addEventListener('click', () =>
+    onMouseClick(ThreeDView.scene, ThreeDView.camera)
+  );
+  PixelView.canvas.addEventListener('click', () =>
+    onMouseClick(PixelView.scene, PixelView.camera)
+  );
+
+  window.addEventListener('resize', onWindowResize);
 
   document
     .getElementById('layers-button')
