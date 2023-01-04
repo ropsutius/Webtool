@@ -1,0 +1,17 @@
+{
+  "name": "webtool",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.html",
+  "scripts": {
+    "start": "node index.html",
+    "dev": "nodemon index.html"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "three": "^0.148.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.20"
+  }
+}

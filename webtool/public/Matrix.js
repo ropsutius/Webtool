@@ -2,7 +2,7 @@ import * as Geometry from './Geometry.js';
 import * as ThreeDView from './threeDView.js';
 import * as PixelView from './pixelView.js';
 import * as Materials from './Materials.js';
-import { initBlankWeave, initPlainWeave } from '../weaves/weaves.js';
+import { initBlankWeave, initPlainWeave } from './weaves/weaves.js';
 
 const matrix = {};
 

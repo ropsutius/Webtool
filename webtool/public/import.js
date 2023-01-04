@@ -1,4 +1,4 @@
-import { initBlankWeave, initPlainWeave } from '../weaves/weaves.js';
+import { initBlankWeave, initPlainWeave } from './weaves/weaves.js';
 import { updateMatrix } from './Matrix.js';
 import { clearScene, populateScene } from './threeDView.js';
 
