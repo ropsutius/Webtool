@@ -7,19 +7,23 @@ import { updateLayers } from './Matrix.js';
 
 const threeDView = document.getElementById('3d-view');
 const pixelView = document.getElementById('pixel-view');
+const canvas = document.getElementById('canvas');
 
 export function addEventHandlers() {
   //INTERACTION
-  const canvas = document.getElementById('canvas');
-  canvas.addEventListener('pointermove', (event) =>
-    onPointerMove(event, canvas)
+
+  threeDView.addEventListener('pointermove', (event) =>
+    onPointerMove(event, threeDView)
+  );
+  pixelView.addEventListener('pointermove', (event) =>
+    onPointerMove(event, pixelView)
   );
 
-  ThreeDView.canvas.addEventListener('click', () =>
-    onMouseClick(ThreeDView.scene, ThreeDView.camera)
+  ThreeDView.canvas.addEventListener('click', (event) =>
+    onMouseClick(event, ThreeDView.scene, ThreeDView.camera)
   );
-  PixelView.canvas.addEventListener('click', () =>
-    onMouseClick(PixelView.scene, PixelView.camera)
+  PixelView.canvas.addEventListener('click', (event) =>
+    onMouseClick(event, PixelView.scene, PixelView.camera)
   );
 
   window.addEventListener('resize', onWindowResize);
@@ -126,6 +130,7 @@ function to3dView() {
   pixelView.style.display = 'none';
   threeDView.style.display = 'block';
   threeDView.style.width = '100%';
+  threeDView.style.float = 'right';
   onWindowResize();
 }
 
@@ -133,13 +138,14 @@ function toPixelView() {
   threeDView.style.display = 'none';
   pixelView.style.display = 'block';
   pixelView.style.width = '100%';
+  pixelView.style.float = 'right';
   onWindowResize();
 }
 
 function toDualView() {
-  threeDView.style.display = 'block';
-  threeDView.style.width = '50%';
   pixelView.style.display = 'block';
   pixelView.style.width = '50%';
+  threeDView.style.display = 'block';
+  threeDView.style.width = '50%';
   onWindowResize();
 }

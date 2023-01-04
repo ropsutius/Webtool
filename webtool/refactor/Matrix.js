@@ -1,6 +1,7 @@
 import * as Geometry from './Geometry.js';
 import * as ThreeDView from './threeDView.js';
 import * as PixelView from './pixelView.js';
+import * as Materials from './Materials.js';
 import { initBlankWeave, initPlainWeave } from '../weaves/weaves.js';
 
 const matrix = {};
@@ -36,7 +37,7 @@ export function updateMatrix(newMatrix) {
   matrix.width = newMatrix.width;
   matrix.layers = newMatrix.layers;
 
-  matrix.changedPoints = [];
+  matrix.changedPoints = { tubes: [], pixels: [] };
   matrix.hoveredOverPoints = [];
 }
 
@@ -51,18 +52,6 @@ export function updateLayers(layers) {
   clearMatrixIds();
   ThreeDView.clearScene();
   PixelView.populateScene();
-}
-
-//not used
-function testMatrix(matrix) {
-  if (matrix.height % matrix.layers !== 0 || matrix.width % matrix.layers !== 0)
-    return false;
-
-  for (let i = 1; i < matrix.height; i++) {
-    if (matrix[i].length !== matrix.width) return false;
-  }
-
-  return true;
 }
 
 export function getWarpPoints(currentPoint) {
@@ -273,6 +262,6 @@ function updatePixelColorOfSet(set) {
   for (const point of set.points) {
     PixelView.scene
       .getObjectById(point.pixelId)
-      .material.color.set(PixelView.getPixelColor(point));
+      .material.color.set(Materials.getPixelColor(point));
   }
 }

@@ -3,7 +3,6 @@ import * as Materials from './Materials.js';
 import * as Geometry from './Geometry.js';
 import { initThreeDControls } from './controls.js';
 import { initPerspectiveCamera } from './camera.js';
-import { updateTubeColors } from './interaction.js';
 import { addAxesHelpers } from './helpers.js';
 import { addLights } from './lights.js';
 
@@ -51,22 +50,10 @@ export function populateScene() {
     scene.add(Geometry.getTubeFromCurve(curve, 'Weft'));
   }
 
-  animate();
-
   console.log(scene);
   console.log(matrix.matrix);
 }
 
 export function clearScene() {
   scene.remove.apply(scene, scene.children);
-}
-
-export function animate() {
-  requestAnimationFrame(animate);
-  controls.update();
-
-  Matrix.updateTubeHeights();
-  updateTubeColors();
-
-  renderer.render(scene, camera);
 }

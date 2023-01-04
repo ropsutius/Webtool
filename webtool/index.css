@@ -11,9 +11,9 @@ body {
 /** ---CANVAS--- **/
 
 #canvas {
-  display:block;
-  float:right;
-  width:calc(100% - 46px);
+  display: block;
+  float: right;
+  width: calc(100% - 46px);
   height: calc(100% - 26px);
 }
 
@@ -207,8 +207,8 @@ body {
 
 /** ---FORM--- **/
 
-input[type="number"],
-input[type="text"],
+input[type='number'],
+input[type='text'],
 select,
 label,
 form button {
@@ -224,11 +224,11 @@ form button {
   margin-left: 0px;
 }
 
-.download input[type="text"] {
+.download input[type='text'] {
   margin-right: 2px;
 }
 
-input[type="number"] {
+input[type='number'] {
   margin-left: 2px;
 }
 

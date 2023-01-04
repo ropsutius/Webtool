@@ -5,7 +5,8 @@ import * as PixelView from './pixelView.js';
 import { camFactor } from './camera.js';
 
 const raycaster = new THREE.Raycaster();
-const pointer = new THREE.Vector2(-1000000, -1000000);
+const pointer3d = new THREE.Vector2(-1000000, -1000000);
+const pointerPixel = new THREE.Vector2(-1000000, -1000000);
 
 let hoveredOverTubes = [];
 let hoveredOverPixels = [];
@@ -33,13 +34,21 @@ export function onWindowResize() {
 }
 
 export function onPointerMove(event, canvas) {
+  const pointer = event.path[1].id === '3d-view' ? pointer3d : pointerPixel;
+  const nonTargetedPointer =
+    event.path[1].id === '3d-view' ? pointerPixel : pointer3d;
+
   pointer.x =
     ((event.clientX - canvas.offsetLeft) / canvas.offsetWidth) * 2 - 1;
   pointer.y =
     -((event.clientY - canvas.offsetTop) / canvas.offsetHeight) * 2 + 1;
+  nonTargetedPointer.x = -1000000;
+  nonTargetedPointer.y = -1000000;
 }
 
-export function onMouseClick(scene, camera) {
+export function onMouseClick(event, scene, camera) {
+  const pointer = event.path[1].id === '3d-view' ? pointer3d : pointerPixel;
+
   raycaster.setFromCamera(pointer, camera);
   const intersects = raycaster.intersectObjects(scene.children);
 
@@ -62,7 +71,7 @@ export function updateTubeColors() {
   }
   hoveredOverTubes = [];
 
-  raycaster.setFromCamera(pointer, ThreeDView.camera);
+  raycaster.setFromCamera(pointer3d, ThreeDView.camera);
   const intersects = raycaster.intersectObjects(ThreeDView.scene.children);
 
   for (const { object } of intersects) {
@@ -86,11 +95,11 @@ export function updatePixelColors() {
   for (const point of hoveredOverPixels) {
     PixelView.scene
       .getObjectById(point.pixelId)
-      .material.color.set(PixelView.getPixelColor(point));
+      .material.color.set(Materials.getPixelColor(point));
   }
   hoveredOverPixels = [];
 
-  raycaster.setFromCamera(pointer, PixelView.camera);
+  raycaster.setFromCamera(pointerPixel, PixelView.camera);
   const intersects = raycaster.intersectObjects(PixelView.scene.children, true);
 
   for (const { object } of intersects) {
