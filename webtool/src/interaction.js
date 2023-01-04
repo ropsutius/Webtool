@@ -34,9 +34,10 @@ export function onWindowResize() {
 }
 
 export function onPointerMove(event, canvas) {
-  const pointer = event.path[1].id === '3d-view' ? pointer3d : pointerPixel;
+  const pointer =
+    event.target.parentNode.id === '3d-view' ? pointer3d : pointerPixel;
   const nonTargetedPointer =
-    event.path[1].id === '3d-view' ? pointerPixel : pointer3d;
+    event.target.parentNode.id === '3d-view' ? pointerPixel : pointer3d;
 
   pointer.x =
     ((event.clientX - canvas.offsetLeft) / canvas.offsetWidth) * 2 - 1;
@@ -47,7 +48,8 @@ export function onPointerMove(event, canvas) {
 }
 
 export function onMouseClick(event, scene, camera) {
-  const pointer = event.path[1].id === '3d-view' ? pointer3d : pointerPixel;
+  const pointer =
+    event.target.parentNode.id === '3d-view' ? pointer3d : pointerPixel;
 
   raycaster.setFromCamera(pointer, camera);
   const intersects = raycaster.intersectObjects(scene.children);

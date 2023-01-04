@@ -1,292 +1,104 @@
-class PixelView extends View {
-  canvasColors = [
-    0xffffdd,
-    0xffdddd,
-    0xddddff,
-    0xddffdd,
-    0xddffff,
-    0xffddff,
-    0x303030,
-    0xffffff
-  ];
-  pixelColors = [];
-  lineColor = 0x000000;
-  lineWidth = 1;
-  size = 10;
-  camFactor = 3;
-  enableGrid = false;
-  panLimit;
+import * as Matrix from './Matrix.js';
+import * as Geometry from './Geometry.js';
+import * as Materials from './Materials.js';
+import { initPixelControls } from './controls.js';
+import { initOrthographicCamera } from './camera.js';
 
-  constructor(app, canvas) {
-    super(app, canvas);
+let isGridEnabled = true;
 
-    this.initPixelColors();
-    this.initControls();
-    this.initGrid();
-  }
+export let canvas, scene, renderer, controls, camera, matrix;
 
-  initPixelColors() {
-    if (this.app.layers == 1) {
-      this.pixelColors = [
-        [
-          [this.canvasColors[7], this.canvasColors[6]],
-          [this.canvasColors[7], this.canvasColors[6]]
-        ],
-        [
-          [this.canvasColors[7], this.canvasColors[6]],
-          [this.canvasColors[7], this.canvasColors[6]]
-        ]
-      ];
-      return;
-    }
-    this.pixelColors = [[], []];
-    for (let i = 0; i < (this.app.layers - (this.app.layers % 2)) / 2; i++) {
-      this.pixelColors[0].push([this.canvasColors[0], this.canvasColors[6]]);
-      this.pixelColors[0].push([this.canvasColors[1], this.canvasColors[6]]);
-      this.pixelColors[1].push([this.canvasColors[2], this.canvasColors[6]]);
-      this.pixelColors[1].push([this.canvasColors[3], this.canvasColors[6]]);
-    }
-    if (this.app.layers % 2 == 1) {
-      this.pixelColors[0].push([this.canvasColors[4], this.canvasColors[6]]);
-      this.pixelColors[1].push([this.canvasColors[5], this.canvasColors[6]]);
-    }
-  }
+export function initScene() {
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(Materials.backgroundColor);
 
-  initControls() {
-    this.panLimit = {
-      y: { max: this.matrix.x * this.size, min: 0 },
-      x: { max: this.matrix.y * this.size, min: 0 }
-    };
+  canvas = document.getElementById('pixel-view');
 
-    this.initCameraPos = {
-      x: (this.matrix.x * this.size) / 2,
-      y: -(this.matrix.y * this.size) / 2,
-      z: 100
-    };
-    this.camera = new THREE.OrthographicCamera(
-      this.canvas.offsetWidth / -this.camFactor,
-      this.canvas.offsetWidth / this.camFactor,
-      this.canvas.offsetHeight / this.camFactor,
-      this.canvas.offsetHeight / -this.camFactor,
-      1,
-      10000
-    );
-    this.camera.position.set(
-      this.initCameraPos.x,
-      this.initCameraPos.y,
-      this.initCameraPos.z
-    );
+  renderer = new THREE.WebGLRenderer();
+  renderer.setSize(canvas.offsetWidth, canvas.offsetHeight);
+  canvas.appendChild(renderer.domElement);
 
-    this.controls = new THREE.OrbitControls(
-      this.camera,
-      this.renderer.domElement
-    );
-    this.controls.enableRotate = false;
-    this.controls.screenSpacePanning = true;
-    this.controls.minZoom = 0.2;
-    this.controls.maxZoom = 2;
-    this.controls.mouseButtons = {
-      RIGHT: THREE.MOUSE.PAN
-    };
-    this.controls.target = new THREE.Vector3(
-      this.initCameraPos.x,
-      this.initCameraPos.y,
-      0
-    );
-  }
+  populateScene();
+}
 
-  initGrid() {
-    let id, point;
-    for (let i = 0; i < this.matrix.y; i++) {
-      this.sceneMatrix[i] = [];
-      for (let k = 0; k < this.matrix.x; k++) {
-        this.sceneMatrix[i][k] = this.addPixelToScene({ y: i, x: k });
-      }
-    }
+export function populateScene() {
+  matrix = Matrix.getMatrix();
 
-    if (this.enableGrid || this.app.layers == 1) {
-      let lineGrid;
-      for (let i = 1; i < this.matrix.y; i++) {
-        this.addLineToSceneByPosition(i, this.lineWidth);
-      }
-      for (let i = 1; i < this.matrix.x; i++) {
-        this.addLineToSceneByPosition(i, this.lineWidth, "Vertical");
-      }
+  const center = {
+    x: (matrix.width * Geometry.size) / 2,
+    y: -(matrix.height * Geometry.size) / 2,
+    z: 100,
+  };
 
-      this.addLineToSceneByPosition(0, this.lineWidth * 5);
-      this.addLineToSceneByPosition(this.matrix.y, this.lineWidth * 5);
-      this.addLineToSceneByPosition(0, this.lineWidth * 5, "Vertical");
-      this.addLineToSceneByPosition(
-        this.matrix.x,
-        this.lineWidth * 5,
-        "Vertical"
+  camera = initOrthographicCamera(canvas, center);
+  controls = initPixelControls(camera, renderer, center);
+
+  Materials.updatePixelColors();
+
+  addPixelsToScene();
+
+  if (isGridEnabled || matrix.layers === 1) addGridToScene();
+
+  console.log(scene);
+}
+
+function addPixelsToScene() {
+  for (const row of matrix.matrix) {
+    for (const point of row) {
+      const planeGeometry = new THREE.PlaneGeometry(
+        Geometry.size,
+        Geometry.size
       );
-    }
-
-    this.animate();
-  }
-
-  addPixelToScene(coords) {
-    let planeGeometry = new THREE.PlaneGeometry(this.size, this.size);
-    // let boxGeometry = new THREE.BoxGeometry(this.size, this.size, 1);
-    let boxMaterial, color;
-    boxMaterial = new THREE.MeshBasicMaterial({
-      color: this.getPixelColor(coords)
-    });
-    let square = new THREE.Mesh(planeGeometry, boxMaterial);
-    square.position.set(
-      coords.x * this.size + this.size / 2,
-      -coords.y * this.size - this.size / 2,
-      0
-    );
-    this.scene.add(square);
-    return square.id;
-  }
-
-  addLineToSceneByPosition(pos, thickness, dir = "Horizontal") {
-    let geometry = new THREE.Geometry();
-    geometry.vertices.push(new THREE.Vector3(0, 0, 0));
-    if (dir == "Horizontal") {
-      geometry.vertices.push(
-        new THREE.Vector3(this.size * this.matrix.x, 0, 0)
+      const boxMaterial = new THREE.MeshBasicMaterial({
+        color: Materials.getPixelColor(point),
+      });
+      const square = new THREE.Mesh(planeGeometry, boxMaterial);
+      square.position.set(
+        point.coords.x * Geometry.size + Geometry.size / 2,
+        -point.coords.y * Geometry.size - Geometry.size / 2,
+        0
       );
-    } else if (dir == "Vertical") {
-      geometry.vertices.push(
-        new THREE.Vector3(0, -this.size * this.matrix.y, 0)
-      );
-    }
-
-    let material = new THREE.LineBasicMaterial({
-      color: this.lineColor,
-      linewidth: thickness
-    });
-    let line = new THREE.Line(geometry, material);
-    if (dir == "Horizontal") {
-      line.position.set(0, -pos * this.size, 10);
-    } else if (dir == "Vertical") {
-      line.position.set(pos * this.size, 0, 10);
-    }
-    this.scene.add(line);
-  }
-
-  draw() {
-    for (let i = 0; i < this.app.changedPixel.length; i++) {
-      this.updatePixel(this.app.changedPixel[i]);
-    }
-    this.app.changedPixel = [];
-
-    for (let i = 0; i < this.previous.length; i++) {
-      this.updatePixel(this.previous[i]);
-    }
-    this.previous = [];
-
-    let intersects = this.getSetByMouse();
-
-    for (let i = 0; i < intersects.length; i++) {
-      let curr = intersects[i].object;
-      if (curr.type == "Mesh") {
-        curr.material.color.set(
-          this.highlightColor[this.getToggleById(curr.id)]
-        );
-        this.previous.push(this.getCoordinatesById(curr.id));
-        break;
-      }
+      square.name = 'Pixel';
+      scene.add(square);
+      point.pixelId = square.id;
     }
   }
+}
 
-  updatePixel(coords) {
-    this.scene
-      .getObjectById(this.getId(coords))
-      .material.color.set(this.getPixelColor(coords));
+function addGridToScene() {
+  for (let y = 0; y <= matrix.height; y++) {
+    addLineToSceneByPosition(y);
+  }
+  for (let x = 0; x <= matrix.width; x++) {
+    addLineToSceneByPosition(x, 'Vertical');
+  }
+}
+
+function addLineToSceneByPosition(position, direction = 'Horizontal') {
+  const points = [];
+  points.push(new THREE.Vector3(0, 0, 0));
+  if (direction === 'Horizontal') {
+    points.push(new THREE.Vector3(Geometry.size * matrix.width, 0, 0));
+  } else if (direction === 'Vertical') {
+    points.push(new THREE.Vector3(0, -Geometry.size * matrix.height, 0));
   }
 
-  getMaterial(options) {
-    if (options.Material == "Mesh") {
-      return new THREE.MeshBasicMaterial({ color: options.Color });
-    } else if (options.Material == "Line") {
-      return new THREE.LineBasicMaterial({ color: options.Color });
-    }
+  const geometry = new THREE.BufferGeometry().setFromPoints(points);
+  const material = new THREE.LineBasicMaterial({
+    color: Materials.lineColor,
+    linewidth: Geometry.lineWidth,
+  });
+
+  const line = new THREE.Line(geometry, material);
+
+  if (direction === 'Horizontal') {
+    line.position.set(0, -position * Geometry.size, 10);
+  } else if (direction === 'Vertical') {
+    line.position.set(position * Geometry.size, 0, 10);
   }
+  scene.add(line);
+}
 
-  getPixelColorById(id) {
-    return this.getPixelColor(this.getCoordinatesById(id));
-  }
-
-  getPixelColor(coords) {
-    if (coords.y % this.app.layers < coords.y % (this.app.layers * 2)) {
-      return this.pixelColors[1][coords.x % this.app.layers][
-        this.getToggle(coords)
-      ];
-    } else {
-      return this.pixelColors[0][coords.x % this.app.layers][
-        this.getToggle(coords)
-      ];
-    }
-  }
-
-  onMouseDown(event) {
-    this.raycaster.setFromCamera(this.mouse, this.camera);
-    let intersects = this.raycaster.intersectObjects(this.scene.children);
-
-    for (let i = 0; i < intersects.length; i++) {
-      if (intersects[i].object.type == "Mesh") {
-        this.clicked = intersects[i].object;
-        break;
-      }
-    }
-  }
-
-  onMouseClick(event) {
-    this.raycaster.setFromCamera(this.mouse, this.camera);
-    let intersects = this.raycaster.intersectObjects(this.scene.children);
-    for (let i = 0; i < intersects.length; i++) {
-      let curr = intersects[i].object;
-      if (curr == this.clicked && curr.type == "Mesh") {
-        this.rotateToggle(this.getCoordinatesById(curr.id));
-        break;
-      }
-    }
-  }
-
-  updateControls() {
-    // let pos_x = Math.min(
-    //   this.camera.right - this.panLimit.x.max,
-    //   Math.max(this.camera.left - this.panLimit.y.min, this.camera.position.x)
-    // );
-    // let pos_y = Math.min(
-    //   this.camera.bottom - this.panLimit.y.max,
-    //   Math.max(this.camera.top - this.panLimit.y.min, this.camera.position.y)
-    // );
-    //
-    // this.camera.position.set(pos_x, pos_y, this.camera.position.z);
-    // this.camera.lookAt(pos_x, pos_y, this.controls.target.z);
-    //
-    // this.controls.target.x = pos_x;
-    // this.controls.target.y = pos_y;
-    this.controls.update();
-  }
-
-  onWindowResize() {
-    this.camera.left = -this.canvas.offsetWidth / this.camFactor;
-    this.camera.right = this.canvas.offsetWidth / this.camFactor;
-    this.camera.top = this.canvas.offsetHeight / this.camFactor;
-    this.camera.bottom = -this.canvas.offsetHeight / this.camFactor;
-
-    this.camera.updateProjectionMatrix();
-    this.renderer.setSize(this.canvas.offsetWidth, this.canvas.offsetHeight);
-  }
-
-  reset(options, matrix) {
-    this.previous = [];
-
-    this.disposeHierarchy(this.scene);
-    this.scene.dispose();
-    this.renderer.renderLists.dispose();
-    this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(this.backgroundColor);
-
-    this.initPixelColors();
-    this.initControls();
-    this.initGrid();
-  }
+export function clearScene() {
+  scene.remove.apply(scene, scene.children);
 }
