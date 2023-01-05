@@ -1,6 +1,11 @@
-import * as Matrix from './Matrix.js';
-import * as Geometry from './Geometry.js';
-import * as Materials from './Materials.js';
+import { getMatrix } from './Matrix.js';
+import { pixelSize, lineWidth } from './Geometry.js';
+import {
+  updatePixelColors,
+  getPixelColor,
+  backgroundColor,
+  lineColor,
+} from './Materials.js';
 import { initPixelControls } from './controls.js';
 import { initOrthographicCamera } from './camera.js';
 
@@ -10,7 +15,7 @@ export let canvas, scene, renderer, controls, camera, matrix;
 
 export function initScene() {
   scene = new THREE.Scene();
-  scene.background = new THREE.Color(Materials.backgroundColor);
+  scene.background = new THREE.Color(backgroundColor);
 
   canvas = document.getElementById('pixel-view');
 
@@ -22,18 +27,18 @@ export function initScene() {
 }
 
 export function populateScene() {
-  matrix = Matrix.getMatrix();
+  matrix = getMatrix();
 
   const center = {
-    x: (matrix.width * Geometry.size) / 2,
-    y: -(matrix.height * Geometry.size) / 2,
+    x: (matrix.width * pixelSize) / 2,
+    y: -(matrix.height * pixelSize) / 2,
     z: 100,
   };
 
   camera = initOrthographicCamera(canvas, center);
   controls = initPixelControls(camera, renderer, center);
 
-  Materials.updatePixelColors();
+  updatePixelColors();
 
   addPixelsToScene();
 
@@ -45,17 +50,14 @@ export function populateScene() {
 function addPixelsToScene() {
   for (const row of matrix.matrix) {
     for (const point of row) {
-      const planeGeometry = new THREE.PlaneGeometry(
-        Geometry.size,
-        Geometry.size
-      );
+      const planeGeometry = new THREE.PlaneGeometry(pixelSize, pixelSize);
       const boxMaterial = new THREE.MeshBasicMaterial({
-        color: Materials.getPixelColor(point),
+        color: getPixelColor(point),
       });
       const square = new THREE.Mesh(planeGeometry, boxMaterial);
       square.position.set(
-        point.coords.x * Geometry.size + Geometry.size / 2,
-        -point.coords.y * Geometry.size - Geometry.size / 2,
+        point.coords.x * pixelSize + pixelSize / 2,
+        -point.coords.y * pixelSize - pixelSize / 2,
         0
       );
       square.name = 'Pixel';
@@ -78,23 +80,23 @@ function addLineToSceneByPosition(position, direction = 'Horizontal') {
   const points = [];
   points.push(new THREE.Vector3(0, 0, 0));
   if (direction === 'Horizontal') {
-    points.push(new THREE.Vector3(Geometry.size * matrix.width, 0, 0));
+    points.push(new THREE.Vector3(pixelSize * matrix.width, 0, 0));
   } else if (direction === 'Vertical') {
-    points.push(new THREE.Vector3(0, -Geometry.size * matrix.height, 0));
+    points.push(new THREE.Vector3(0, -pixelSize * matrix.height, 0));
   }
 
   const geometry = new THREE.BufferGeometry().setFromPoints(points);
   const material = new THREE.LineBasicMaterial({
-    color: Materials.lineColor,
-    linewidth: Geometry.lineWidth,
+    color: lineColor,
+    linewidth: lineWidth,
   });
 
   const line = new THREE.Line(geometry, material);
 
   if (direction === 'Horizontal') {
-    line.position.set(0, -position * Geometry.size, 10);
+    line.position.set(0, -position * pixelSize, 10);
   } else if (direction === 'Vertical') {
-    line.position.set(position * Geometry.size, 0, 10);
+    line.position.set(position * pixelSize, 0, 10);
   }
   scene.add(line);
 }

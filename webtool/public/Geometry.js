@@ -1,9 +1,9 @@
-import * as Materials from './Materials.js';
+import { weftColor, warpColor } from './Materials.js';
 
 export const weftLength = 2;
 export const warpLength = 4;
-export const warpHeight = 3;
-export const warp = [
+export const warpOffset = 4;
+export const warpPoints = [
   0,
   warpLength / 4,
   warpLength / 2,
@@ -14,7 +14,7 @@ export const tubeRadius = 1;
 export const tubeSegments = 32;
 export const tubeRadialSegments = 8;
 export const layerOffset = 5;
-export const size = 10;
+export const pixelSize = 10;
 export const lineWidth = 1;
 
 export function getTubeFromCurve(curve, type) {
@@ -31,7 +31,7 @@ export function getTubeFromCurve(curve, type) {
     false
   );
 
-  const color = type === 'Weft' ? Materials.weftColor : Materials.warpColor;
+  const color = type === 'Weft' ? weftColor : warpColor;
   const tubeMaterial = new THREE.MeshLambertMaterial({ color: color });
   const tube = new THREE.Mesh(tubeGeometry, tubeMaterial);
 

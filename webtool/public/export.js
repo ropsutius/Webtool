@@ -1,11 +1,11 @@
 import { UTIF } from './UTIF.js';
-import * as Matrix from './Matrix.js';
+import { getMatrix } from './Matrix.js';
 
 export function saveProject(event) {
   event.preventDefault();
 
   const fileName = event.target[0].value;
-  const matrix = Matrix.getMatrix();
+  const matrix = getMatrix();
   const file = matrix.getString();
 
   const element = document.createElement('a');
@@ -29,7 +29,7 @@ export function exportProject(event) {
 function exportTIFF(fileName) {
   if (fileName === null || fileName === '') return;
 
-  const matrix = Matrix.getMatrix();
+  const matrix = getMatrix();
 
   const colorMatrix = new Uint32Array(matrix.height * matrix.width);
   let index = 0;

@@ -1,14 +1,14 @@
-import * as Matrix from './Matrix.js';
-import * as Geometry from './Geometry.js';
+import { getMatrix } from './Matrix.js';
+import { warpOffset, warpLength } from './Geometry.js';
 
 export const camFactor = 3;
 
 export function initPerspectiveCamera(canvas, center) {
-  const matrix = Matrix.getMatrix();
+  const matrix = getMatrix();
   const cameraPosition = {
     x: center.x,
-    y: center.y + Geometry.warpHeight * matrix.layers * 10,
-    z: center.z + Geometry.warpLength * matrix.height,
+    y: center.y + warpOffset * matrix.layers * 10,
+    z: center.z + warpLength * matrix.height,
   };
 
   const camera = new THREE.PerspectiveCamera(

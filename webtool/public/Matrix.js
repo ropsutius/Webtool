@@ -1,7 +1,15 @@
-import * as Geometry from './Geometry.js';
 import * as ThreeDView from './threeDView.js';
 import * as PixelView from './pixelView.js';
-import * as Materials from './Materials.js';
+import {
+  weftLength,
+  warpLength,
+  warpPoints,
+  warpOffset,
+  tubeRadius,
+  layerOffset,
+  updateTube,
+} from './Geometry.js';
+import { getPixelColor } from './Materials.js';
 import { initBlankWeave, initPlainWeave } from './weaves/weaves.js';
 
 const matrix = {
@@ -102,24 +110,20 @@ export function getWarpPoints(currentPoint) {
     previousPoint !== null ? getHeight(previousPoint) : warpHeight;
 
   let previousPointY =
-    Geometry.warpHeight * previousPointHeight +
-    warpHeight * Geometry.layerOffset;
+    warpOffset * previousPointHeight + warpHeight * layerOffset;
   let currentPointY =
-    Geometry.warpHeight * currentPointHeight +
-    warpHeight * Geometry.layerOffset;
+    warpOffset * currentPointHeight + warpHeight * layerOffset;
 
   if (currentPointHeight < warpHeight) {
-    currentPointY -= (warpHeight - currentPointHeight) * Geometry.layerOffset;
+    currentPointY -= (warpHeight - currentPointHeight) * layerOffset;
   } else if (currentPointHeight > warpHeight + 1) {
-    currentPointY +=
-      (currentPointHeight - warpHeight - 1) * Geometry.layerOffset;
+    currentPointY += (currentPointHeight - warpHeight - 1) * layerOffset;
   }
 
   if (previousPointHeight < warpHeight) {
-    previousPointY -= (warpHeight - previousPointHeight) * Geometry.layerOffset;
+    previousPointY -= (warpHeight - previousPointHeight) * layerOffset;
   } else if (previousPointHeight > warpHeight + 1) {
-    previousPointY +=
-      (previousPointHeight - warpHeight - 1) * Geometry.layerOffset;
+    previousPointY += (previousPointHeight - warpHeight - 1) * layerOffset;
   }
 
   let middleY =
@@ -129,19 +133,19 @@ export function getWarpPoints(currentPoint) {
   const x =
     ((currentPoint.coords.x - (currentPoint.coords.x % matrix.layers)) /
       matrix.layers) *
-    Geometry.weftLength;
+    weftLength;
 
   const z =
     ((currentPoint.coords.y - (currentPoint.coords.y % matrix.layers)) /
       matrix.layers) *
-    Geometry.warpLength;
+    warpLength;
 
   return [
-    new THREE.Vector3(x, previousPointY, Geometry.warp[0] + z),
-    new THREE.Vector3(x, previousPointY, Geometry.warp[1] + z),
-    new THREE.Vector3(x, middleY, Geometry.warp[2] + z),
-    new THREE.Vector3(x, currentPointY, Geometry.warp[3] + z),
-    new THREE.Vector3(x, currentPointY, Geometry.warp[4] + z),
+    new THREE.Vector3(x, previousPointY, warpPoints[0] + z),
+    new THREE.Vector3(x, previousPointY, warpPoints[1] + z),
+    new THREE.Vector3(x, middleY, warpPoints[2] + z),
+    new THREE.Vector3(x, currentPointY, warpPoints[3] + z),
+    new THREE.Vector3(x, currentPointY, warpPoints[4] + z),
   ];
 }
 
@@ -149,17 +153,14 @@ export function* getWeftPoints() {
   let x, y, z;
   for (let i = 0; i < matrix.height; i++) {
     x = [
-      -Geometry.tubeRadius * 2,
-      ((matrix.width - 1) * Geometry.weftLength) / matrix.layers +
-        Geometry.tubeRadius,
+      -tubeRadius * 2,
+      ((matrix.width - 1) * weftLength) / matrix.layers + tubeRadius,
     ];
     y =
-      Geometry.warpHeight * (i % matrix.layers) +
-      Geometry.warpHeight / 2 +
-      (i % matrix.layers) * Geometry.layerOffset;
-    z =
-      ((i - (i % matrix.layers)) / matrix.layers) * Geometry.warpLength +
-      Geometry.warpLength;
+      warpOffset * (i % matrix.layers) +
+      warpOffset / 2 +
+      (i % matrix.layers) * layerOffset;
+    z = ((i - (i % matrix.layers)) / matrix.layers) * warpLength + warpLength;
     yield [new THREE.Vector3(x[0], y, z), new THREE.Vector3(x[1], y, z)];
   }
 }
@@ -279,13 +280,13 @@ function updateTubeOfSet(set) {
   const curve = getWarpPoints(primePoint);
 
   const tube = ThreeDView.scene.getObjectById(primePoint.threeDId);
-  Geometry.updateTube(tube, curve);
+  updateTube(tube, curve);
 }
 
 function updatePixelColorOfSet(set) {
   for (const point of set.points) {
     PixelView.scene
       .getObjectById(point.pixelId)
-      .material.color.set(Materials.getPixelColor(point));
+      .material.color.set(getPixelColor(point));
   }
 }

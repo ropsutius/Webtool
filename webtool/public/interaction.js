@@ -1,7 +1,16 @@
-import * as Matrix from './Matrix.js';
-import * as Materials from './Materials.js';
 import * as ThreeDView from './threeDView.js';
 import * as PixelView from './pixelView.js';
+import {
+  updateToggleOfSet,
+  getPointById,
+  getPointInNextSet,
+} from './Matrix.js';
+import {
+  highlightColor,
+  tubeHighlightColor,
+  getPixelColor,
+  warpColor,
+} from './Materials.js';
 import { camFactor } from './camera.js';
 
 const raycaster = new THREE.Raycaster();
@@ -56,10 +65,10 @@ export function onMouseClick(event, scene, camera) {
 
   for (const { object } of intersects) {
     if (object.name === 'Warp') {
-      Matrix.updateToggleOfSet(Matrix.getPointById(object.id));
+      updateToggleOfSet(getPointById(object.id));
       break;
     } else if (object.name === 'Pixel') {
-      Matrix.updateToggleOfSet(Matrix.getPointById(object.id));
+      updateToggleOfSet(getPointById(object.id));
       break;
     }
   }
@@ -69,7 +78,7 @@ export function updateTubeColors() {
   for (const point of hoveredOverTubes) {
     ThreeDView.scene
       .getObjectById(point.threeDId)
-      .material.color.set(Materials.warpColor);
+      .material.color.set(warpColor);
   }
   hoveredOverTubes = [];
 
@@ -79,15 +88,15 @@ export function updateTubeColors() {
   for (const { object } of intersects) {
     if (object.name !== 'Warp') continue;
 
-    const point = Matrix.getPointById(object.id);
-    const nextPoint = Matrix.getPointInNextSet(point);
+    const point = getPointById(object.id);
+    const nextPoint = getPointInNextSet(point);
     if (nextPoint !== null) {
       const nextObject = ThreeDView.scene.getObjectById(nextPoint.threeDId);
-      nextObject.material.color.set(Materials.tubeHighlightColor);
+      nextObject.material.color.set(tubeHighlightColor);
       hoveredOverTubes.push(nextPoint);
     }
 
-    object.material.color.set(Materials.tubeHighlightColor);
+    object.material.color.set(tubeHighlightColor);
     hoveredOverTubes.push(point);
     break;
   }
@@ -97,7 +106,7 @@ export function updatePixelColors() {
   for (const point of hoveredOverPixels) {
     PixelView.scene
       .getObjectById(point.pixelId)
-      .material.color.set(Materials.getPixelColor(point));
+      .material.color.set(getPixelColor(point));
   }
   hoveredOverPixels = [];
 
@@ -106,8 +115,8 @@ export function updatePixelColors() {
 
   for (const { object } of intersects) {
     if (object.type === 'Mesh') {
-      const point = Matrix.getPointById(object.id);
-      object.material.color.set(Materials.highlightColor[point.toggle]);
+      const point = getPointById(object.id);
+      object.material.color.set(highlightColor[point.toggle]);
       hoveredOverPixels.push(point);
       break;
     }
