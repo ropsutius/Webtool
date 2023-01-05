@@ -1,17 +1,12 @@
 import { UTIF } from './UTIF.js';
 import * as Matrix from './Matrix.js';
 
-function getMatrixString(matrixToggles) {
-  return matrixToggles.matrix.map((row) => row.toString()).join(';');
-}
-
 export function saveProject(event) {
   event.preventDefault();
 
   const fileName = event.target[0].value;
-  const matrixToggles = Matrix.getMatrixToggles();
-
-  const file = getMatrixString(matrixToggles);
+  const matrix = Matrix.getMatrix();
+  const file = matrix.getString();
 
   const element = document.createElement('a');
   document.body.appendChild(element);

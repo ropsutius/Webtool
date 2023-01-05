@@ -4,7 +4,41 @@ import * as PixelView from './pixelView.js';
 import * as Materials from './Materials.js';
 import { initBlankWeave, initPlainWeave } from './weaves/weaves.js';
 
-const matrix = {};
+const matrix = {
+  height: 0,
+  width: 0,
+  layers: 0,
+  matrix: [],
+  changedPoints: { tubes: [], pixels: [] },
+  hoveredOverPoints: [],
+  getToggles() {
+    return this.matrix.map((row) => row.map((point) => point.toggle));
+  },
+  getString() {
+    return this.getToggles()
+      .map((row) => row.toString())
+      .join(';');
+  },
+  testMatrix() {
+    if (this.width % this.layers !== 0 || this.width % this.layers !== 0)
+      return false;
+
+    for (const row of this.matrix) {
+      for (const point of row) {
+        if (!pointRegex.test(getSetString(point))) return false;
+      }
+    }
+    return true;
+  },
+  clearIds() {
+    for (const row of this.matrix) {
+      for (const point of row) {
+        point.threeDId = undefined;
+        point.pixelId = undefined;
+      }
+    }
+  },
+};
 
 const pointRegex = new RegExp(/^1*0*$/);
 
@@ -12,9 +46,6 @@ export function initMatrix(options) {
   matrix.height = options.height;
   matrix.width = options.width;
   matrix.layers = options.layers;
-  matrix.matrix = [];
-  matrix.changedPoints = { tubes: [], pixels: [] };
-  matrix.hoveredOverPoints = [];
 
   switch (options.weave) {
     case 'blank':
@@ -41,16 +72,17 @@ export function updateMatrix(newMatrix) {
   matrix.hoveredOverPoints = [];
 }
 
-function clearMatrixIds() {
-  matrix.matrix.map((row) => row.map((point) => (point.threeDId = undefined)));
-}
-
-export function updateLayers(layers) {
-  if (layers === 4) matrix.layers = 1;
+export function updateLayers() {
+  if (matrix.layers === 4) matrix.layers = 1;
   else matrix.layers += 1;
 
-  clearMatrixIds();
+  matrix.clearIds();
+
   ThreeDView.clearScene();
+  if (matrix.testMatrix()) ThreeDView.populateScene();
+  else alert(`Unable to convert current weave to ${matrix.layers} layers`);
+
+  PixelView.clearScene();
   PixelView.populateScene();
 }
 
@@ -130,14 +162,6 @@ export function* getWeftPoints() {
       Geometry.warpLength;
     yield [new THREE.Vector3(x[0], y, z), new THREE.Vector3(x[1], y, z)];
   }
-}
-
-export function getMatrixToggles() {
-  return {
-    matrix: matrix.matrix.map((row) => row.map((point) => point.toggle)),
-    width: matrix.width,
-    height: matrix.height,
-  };
 }
 
 function getSetString(point) {

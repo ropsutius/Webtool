@@ -51,7 +51,7 @@ export function populateScene() {
   }
 
   console.log(scene);
-  console.log(matrix.matrix);
+  console.log(matrix.testMatrix());
 }
 
 export function clearScene() {
