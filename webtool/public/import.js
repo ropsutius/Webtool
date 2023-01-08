@@ -1,6 +1,11 @@
-import { initBlankWeave, initPlainWeave } from './weaves/weaves.js';
+import {
+  getPointsFromToggles,
+  initBlankWeave,
+  initPlainWeave,
+} from './weaves/weaves.js';
 import { updateMatrix } from './Matrix.js';
-import { clearScene, populateScene } from './threeDView.js';
+import * as PixelView from './pixelView.js';
+import * as ThreeDView from './threeDView.js';
 
 export function importProject(event) {
   event.preventDefault();
@@ -11,26 +16,25 @@ export function importProject(event) {
   const reader = new FileReader();
   reader.onload = function (event) {
     const contents = event.target.result;
-    const array = contents.split(';');
+    const toggles = contents
+      .split(';')
+      .map((row) => row.split(',').map((toggle) => parseInt(toggle)));
 
-    const matrix = array.map((row, y) =>
-      row.split(',').map((point, x) => ({
-        toggle: parseInt(point),
-        id: undefined,
-        coords: { x, y },
-      }))
-    );
-    const newMatrix = {
+    const matrix = getPointsFromToggles(toggles);
+
+    //UPDATE SCENE WITH THE NEW MATRIX
+    updateMatrix({
       matrix,
       height: matrix.length,
       width: matrix[0].length,
       layers: 1,
-    };
+    });
 
-    //UPDATE SCENE WITH THE NEW MATRIX
-    updateMatrix(newMatrix);
-    clearScene();
-    populateScene();
+    PixelView.clearScene();
+    ThreeDView.clearScene();
+
+    PixelView.populateScene();
+    ThreeDView.populateScene();
   };
 
   reader.readAsText(file);
@@ -56,6 +60,10 @@ export function createNewProject(event) {
   }
 
   updateMatrix(newMatrix);
-  clearScene();
-  populateScene();
+
+  PixelView.clearScene();
+  ThreeDView.clearScene();
+
+  PixelView.populateScene();
+  ThreeDView.populateScene();
 }

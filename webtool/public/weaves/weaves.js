@@ -30,3 +30,14 @@ export function initPlainWeave(matrix, options) {
     }
   }
 }
+
+export function getPointsFromToggles(matrix) {
+  return matrix.map((row, y) =>
+    row.map((point, x) => ({
+      toggle: point,
+      threeDId: undefined,
+      pixelId: undefined,
+      coords: { x, y },
+    }))
+  );
+}
