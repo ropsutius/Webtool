@@ -3,7 +3,7 @@ import { OrbitControls } from 'https://threejsfundamentals.org/threejs/resources
 export function initThreeDControls(camera, renderer, center) {
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.minDistance = 25;
-  controls.maxDistance = 1000;
+  controls.maxDistance = 900;
   controls.mouseButtons = {
     LEFT: THREE.MOUSE.PAN,
     RIGHT: THREE.MOUSE.ROTATE,

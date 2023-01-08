@@ -21,44 +21,45 @@ let hoveredOverTubes = [];
 let hoveredOverPixels = [];
 
 export function onWindowResize() {
-  ThreeDView.camera.aspect =
-    ThreeDView.canvas.offsetWidth / ThreeDView.canvas.offsetHeight;
-  ThreeDView.camera.updateProjectionMatrix();
-
-  PixelView.camera.left = -PixelView.canvas.offsetWidth / camFactor;
-  PixelView.camera.right = PixelView.canvas.offsetWidth / camFactor;
-  PixelView.camera.top = PixelView.canvas.offsetHeight / camFactor;
-  PixelView.camera.bottom = -PixelView.canvas.offsetHeight / camFactor;
-  PixelView.camera.updateProjectionMatrix();
-
   ThreeDView.renderer.setSize(
-    ThreeDView.canvas.offsetWidth,
-    ThreeDView.canvas.offsetHeight
+    ThreeDView.canvas.clientWidth,
+    ThreeDView.canvas.clientHeight,
+    false
   );
 
   PixelView.renderer.setSize(
-    PixelView.canvas.offsetWidth,
-    PixelView.canvas.offsetHeight
+    PixelView.canvas.clientWidth,
+    PixelView.canvas.clientHeight,
+    false
   );
+
+  ThreeDView.camera.aspect =
+    ThreeDView.canvas.clientWidth / ThreeDView.canvas.clientHeight;
+  ThreeDView.camera.updateProjectionMatrix();
+
+  PixelView.camera.left = -PixelView.canvas.clientWidth / camFactor;
+  PixelView.camera.right = PixelView.canvas.clientWidth / camFactor;
+  PixelView.camera.top = PixelView.canvas.clientHeight / camFactor;
+  PixelView.camera.bottom = -PixelView.canvas.clientHeight / camFactor;
+  PixelView.camera.updateProjectionMatrix();
 }
 
 export function onPointerMove(event, canvas) {
-  const pointer =
-    event.target.parentNode.id === '3d-view' ? pointer3d : pointerPixel;
+  const pointer = event.target.id === '3d-view' ? pointer3d : pointerPixel;
   const nonTargetedPointer =
-    event.target.parentNode.id === '3d-view' ? pointerPixel : pointer3d;
+    event.target.id === '3d-view' ? pointerPixel : pointer3d;
 
   pointer.x =
     ((event.clientX - canvas.offsetLeft) / canvas.offsetWidth) * 2 - 1;
   pointer.y =
     -((event.clientY - canvas.offsetTop) / canvas.offsetHeight) * 2 + 1;
+
   nonTargetedPointer.x = -1000000;
   nonTargetedPointer.y = -1000000;
 }
 
 export function onMouseClick(event, scene, camera) {
-  const pointer =
-    event.target.parentNode.id === '3d-view' ? pointer3d : pointerPixel;
+  const pointer = event.target.id === '3d-view' ? pointer3d : pointerPixel;
 
   raycaster.setFromCamera(pointer, camera);
   const intersects = raycaster.intersectObjects(scene.children);

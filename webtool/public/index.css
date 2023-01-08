@@ -10,7 +10,7 @@ body {
 
 /** ---CANVAS--- **/
 
-#canvas {
+#viewport {
   display: block;
   float: right;
   width: calc(100% - 46px);

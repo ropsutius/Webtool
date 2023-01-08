@@ -13,9 +13,9 @@ export function initPerspectiveCamera(canvas, center) {
 
   const camera = new THREE.PerspectiveCamera(
     45,
-    canvas.offsetWidth / canvas.offsetHeight,
+    canvas.clientWidth / canvas.clientHeight,
     1,
-    10000
+    1000
   );
 
   camera.position.set(cameraPosition.x, cameraPosition.y, cameraPosition.z);
@@ -25,12 +25,12 @@ export function initPerspectiveCamera(canvas, center) {
 
 export function initOrthographicCamera(canvas, center) {
   const camera = new THREE.OrthographicCamera(
-    canvas.offsetWidth / -camFactor,
-    canvas.offsetWidth / camFactor,
-    canvas.offsetHeight / camFactor,
-    canvas.offsetHeight / -camFactor,
+    canvas.clientWidth / -camFactor,
+    canvas.clientWidth / camFactor,
+    canvas.clientHeight / camFactor,
+    canvas.clientHeight / -camFactor,
     1,
-    10000
+    1000
   );
   camera.position.set(center.x, center.y, center.z);
 

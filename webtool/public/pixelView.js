@@ -18,10 +18,7 @@ export function initScene() {
   scene.background = new THREE.Color(backgroundColor);
 
   canvas = document.getElementById('pixel-view');
-
-  renderer = new THREE.WebGLRenderer();
-  renderer.setSize(canvas.offsetWidth, canvas.offsetHeight);
-  canvas.appendChild(renderer.domElement);
+  renderer = new THREE.WebGLRenderer({ canvas });
 
   populateScene();
 }

@@ -1,13 +1,18 @@
 import * as Matrix from './Matrix.js';
 import * as ThreeDView from './threeDView.js';
 import * as PixelView from './pixelView.js';
-import { updateTubeColors, updatePixelColors } from './interaction.js';
+import {
+  updateTubeColors,
+  updatePixelColors,
+  onWindowResize,
+} from './interaction.js';
 
 export function initApp(options) {
   Matrix.initMatrix(options);
   ThreeDView.initScene();
   PixelView.initScene();
 
+  onWindowResize();
   animate();
 }
 
