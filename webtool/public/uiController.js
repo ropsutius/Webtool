@@ -8,7 +8,7 @@ import {
   onWindowResize,
 } from './interaction.js';
 import { createNewProject, importProject } from './import.js';
-import { saveProject, exportProject } from './export.js';
+import { exportProject, uploadProject } from './export.js';
 import { updateLayers } from './Matrix.js';
 
 const threeDView = document.getElementById('3d-view');
@@ -81,22 +81,10 @@ export function addEventHandlers() {
   });
 
   //SAVE PROJECT WIDGET
-  const saveElement = document.getElementById('save');
+
   document
-    .getElementById('save-form')
-    .addEventListener('submit', (event) => saveProject(event));
-
-  document.getElementById('open-save-button').addEventListener('click', () => {
-    saveElement.style.display = 'block';
-  });
-
-  document.getElementById('close-save-button').addEventListener('click', () => {
-    saveElement.style.display = 'none';
-  });
-
-  document.getElementById('close-save-span').addEventListener('click', () => {
-    saveElement.style.display = 'none';
-  });
+    .getElementById('save-button')
+    .addEventListener('click', uploadProject);
 
   //EXPORT PROJECT WIDGET
   const exportElement = document.getElementById('export');

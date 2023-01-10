@@ -9,6 +9,7 @@
 
     <script src="./utilities/three.js"></script>
     <script type="module" src="./utilities/THREEf.module.js"></script>
+    <script type="module" src="./utilities/pako.js"></script>
     <script
       src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.2.2/axios.min.js"
       integrity="sha512-QTnb9BQkG4fBYIt9JGvYmxPpd6TBeKp6lsUrtiVQsrJ9sb33Bn9s0wMQO9qVBFbPX3xHRAsBHvXlcsrnJjExjg=="
@@ -76,36 +77,20 @@
       </div>
     </div>
 
-    <div id="save" class="modal download">
-      <div class="modal-content">
-        <div class="modal-header">
-          <span id="close-save-span" class="close">&times;</span>
-          <h2>Save Project as a Text File</h2>
-        </div>
-        <div class="modal-body">
-          <form id="save-form">
-            <input type="text" name="name" />
-            <label for="name">.txt</label>
-            <br />
-            <button type="submit" class="btn">Download</button>
-            <button id="close-save-button" type="button" class="btn">
-              Cancel
-            </button>
-          </form>
-        </div>
-      </div>
-    </div>
-
     <div id="export" class="modal download">
       <div class="modal-content">
         <div class="modal-header">
           <span id="close-export-span" class="close">&times;</span>
-          <h2>Export Project as TIF-file</h2>
+          <h2>Export Project</h2>
         </div>
         <div class="modal-body">
           <form id="export-form">
-            <input type="text" name="name" />
-            <label for="name">.tif</label>
+            <input type="text" />
+            <select id="cars">
+              <option value="png">.png</option>
+              <option value="tif">.tif</option>
+              <option value="txt">.txt</option>
+            </select>
             <br />
             <button type="submit" class="btn">Download</button>
             <button id="close-export-button" type="button" class="btn">
@@ -122,7 +107,7 @@
         <div class="dropdown-content">
           <a id="open-new-button">New</a>
           <a id="open-import-button">Open</a>
-          <a id="open-save-button">Save</a>
+          <a id="save-button">Save</a>
           <a id="open-export-button">Export</a>
         </div>
       </div>

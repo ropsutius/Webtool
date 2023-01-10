@@ -13,8 +13,13 @@ import {
 
 //const newMatrix = await addSavedProject({});
 
-export function initApp(options) {
-  Matrix.initMatrix(options);
+export async function initApp(options) {
+  const projects = await getSavedProjects();
+  const matrix = projects[projects.length - 1];
+
+  if (matrix.matrix) Matrix.initMatrix(matrix);
+  else Matrix.initMatrix(options);
+
   ThreeDView.initScene();
   PixelView.initScene();
 

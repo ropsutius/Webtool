@@ -55,14 +55,17 @@ export function initMatrix(options) {
   matrix.width = options.width;
   matrix.layers = options.layers;
 
-  switch (options.weave) {
-    case 'blank':
-      initBlankWeave(matrix);
-      break;
+  if (options.id) matrix.matrix = options.matrix;
+  else {
+    switch (options.weave) {
+      case 'blank':
+        initBlankWeave(matrix);
+        break;
 
-    case 'plain':
-      initPlainWeave(matrix, options);
-      break;
+      case 'plain':
+        initPlainWeave(matrix, options);
+        break;
+    }
   }
 }
 
