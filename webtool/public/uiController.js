@@ -1,16 +1,25 @@
 import * as ThreeDView from './threeDView.js';
 import * as PixelView from './pixelView.js';
-import { onPointerMove, onMouseClick, onWindowResize } from './interaction.js';
+import {
+  onPointerEnter,
+  onPointerLeave,
+  onPointerMove,
+  onMouseClick,
+  onWindowResize,
+} from './interaction.js';
 import { createNewProject, importProject } from './import.js';
 import { saveProject, exportProject } from './export.js';
 import { updateLayers } from './Matrix.js';
 
 const threeDView = document.getElementById('3d-view');
 const pixelView = document.getElementById('pixel-view');
-const canvas = document.getElementById('canvas');
+const canvas = document.getElementById('viewport');
 
 export function addEventHandlers() {
   //INTERACTION
+  canvas.addEventListener('mouseenter', onPointerEnter);
+  canvas.addEventListener('mouseleave', onPointerLeave);
+
   threeDView.addEventListener('pointermove', (event) =>
     onPointerMove(event, threeDView)
   );

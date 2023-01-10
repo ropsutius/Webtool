@@ -1,4 +1,4 @@
-import { importWeaves } from '../services/weavesService.js';
+import { importWeaves } from '../../services/weavesService.js';
 
 const weaves = await importWeaves();
 

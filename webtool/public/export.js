@@ -1,4 +1,4 @@
-import { UTIF } from './UTIF.js';
+import { UTIF } from './utilities/UTIF.js';
 import { getMatrix } from './Matrix.js';
 
 export function saveProject(event) {
@@ -23,10 +23,8 @@ export function saveProject(event) {
 
 export function exportProject(event) {
   event.preventDefault();
-  exportTIFF(event.target[0].value);
-}
 
-function exportTIFF(fileName) {
+  const fileName = event.target[0].value;
   if (fileName === null || fileName === '') return;
 
   const matrix = getMatrix();

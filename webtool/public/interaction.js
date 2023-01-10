@@ -16,6 +16,7 @@ import { camFactor } from './camera.js';
 const raycaster = new THREE.Raycaster();
 const pointer3d = new THREE.Vector2(-1000000, -1000000);
 const pointerPixel = new THREE.Vector2(-1000000, -1000000);
+let isPointerInViewport = false;
 
 let hoveredOverTubes = [];
 let hoveredOverPixels = [];
@@ -42,6 +43,14 @@ export function onWindowResize() {
   PixelView.camera.top = PixelView.canvas.clientHeight / camFactor;
   PixelView.camera.bottom = -PixelView.canvas.clientHeight / camFactor;
   PixelView.camera.updateProjectionMatrix();
+}
+
+export function onPointerEnter() {
+  isPointerInViewport = true;
+}
+
+export function onPointerLeave() {
+  isPointerInViewport = false;
 }
 
 export function onPointerMove(event, canvas) {
@@ -76,6 +85,8 @@ export function onMouseClick(event, scene, camera) {
 }
 
 export function updateTubeColors() {
+  if (!isPointerInViewport) return;
+
   for (const point of hoveredOverTubes) {
     ThreeDView.scene
       .getObjectById(point.threeDId)
@@ -104,6 +115,8 @@ export function updateTubeColors() {
 }
 
 export function updatePixelColors() {
+  if (!isPointerInViewport) return;
+
   for (const point of hoveredOverPixels) {
     PixelView.scene
       .getObjectById(point.pixelId)

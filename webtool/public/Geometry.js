@@ -1,4 +1,5 @@
 import { weftColor, warpColor } from './Materials.js';
+import * as THREEf from './utilities/THREEf.module.js';
 
 export const weftLength = 2;
 export const warpLength = 4;
@@ -36,6 +37,7 @@ export function getTubeFromCurve(curve, type) {
   const tube = new THREE.Mesh(tubeGeometry, tubeMaterial);
 
   tube.name = type;
+
   return tube;
 }
 

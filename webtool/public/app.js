@@ -6,6 +6,12 @@ import {
   updatePixelColors,
   onWindowResize,
 } from './interaction.js';
+import {
+  addSavedProject,
+  getSavedProjects,
+} from '../services/projectService.js';
+
+//const newMatrix = await addSavedProject({});
 
 export function initApp(options) {
   Matrix.initMatrix(options);

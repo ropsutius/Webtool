@@ -109,16 +109,17 @@ export function getWarpPoints(currentPoint) {
   const previousPointHeight =
     previousPoint !== null ? getHeight(previousPoint) : warpHeight;
 
-  let previousPointY =
-    warpOffset * previousPointHeight + warpHeight * layerOffset;
   let currentPointY =
-    warpOffset * currentPointHeight + warpHeight * layerOffset;
+    currentPointHeight * warpOffset + warpHeight * layerOffset;
 
   if (currentPointHeight < warpHeight) {
     currentPointY -= (warpHeight - currentPointHeight) * layerOffset;
   } else if (currentPointHeight > warpHeight + 1) {
     currentPointY += (currentPointHeight - warpHeight - 1) * layerOffset;
   }
+
+  let previousPointY =
+    previousPointHeight * warpOffset + warpHeight * layerOffset;
 
   if (previousPointHeight < warpHeight) {
     previousPointY -= (warpHeight - previousPointHeight) * layerOffset;
@@ -150,17 +151,17 @@ export function getWarpPoints(currentPoint) {
 }
 
 export function* getWeftPoints() {
-  let x, y, z;
   for (let i = 0; i < matrix.height; i++) {
-    x = [
+    const x = [
       -tubeRadius * 2,
       ((matrix.width - 1) * weftLength) / matrix.layers + tubeRadius,
     ];
-    y =
+    const y =
       warpOffset * (i % matrix.layers) +
       warpOffset / 2 +
       (i % matrix.layers) * layerOffset;
-    z = ((i - (i % matrix.layers)) / matrix.layers) * warpLength + warpLength;
+    const z =
+      ((i - (i % matrix.layers)) / matrix.layers) * warpLength + warpLength;
     yield [new THREE.Vector3(x[0], y, z), new THREE.Vector3(x[1], y, z)];
   }
 }
