@@ -1,3 +1,7 @@
-# Bachelors thesis
+# Webtool for designing multilayered weaves
 
-Web based tool for e-textiles design
+# Installation
+
+`npm install`
+
+`npm run dev`
