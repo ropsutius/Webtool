@@ -20,7 +20,7 @@ import { exportProject } from '../webtool/export';
 export default {
   methods: {
     closeExportModal() {
-      document.getElementById('export').style.display = 'none';
+      this.$parent.$emit('closeModal');
     },
   },
 };

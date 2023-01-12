@@ -34,15 +34,18 @@ import NavbarDropdown from './NavbarDropdown.vue';
 
 <script>
 export default {
+  props: {
+    state: Object,
+  },
   methods: {
     openNewModal() {
-      document.getElementById('new').style.display = 'block';
+      this.state.newModal = true;
     },
     openImportModal() {
-      document.getElementById('import').style.display = 'block';
+      this.state.importModal = true;
     },
     openExportModal() {
-      document.getElementById('export').style.display = 'block';
+      this.state.exportModal = true;
     },
     uploadProject,
     updateLayers,

@@ -16,7 +16,7 @@ import { importProject } from '../webtool/import';
 export default {
   methods: {
     closeImportModal() {
-      document.getElementById('import').style.display = 'none';
+      this.$parent.$emit('closeModal');
     },
   },
 };

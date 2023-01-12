@@ -30,7 +30,7 @@ import { createNewProject } from '../webtool/import';
 export default {
   methods: {
     closeNewModal() {
-      document.getElementById('new').style.display = 'none';
+      this.$parent.$emit('closeModal');
     },
   },
 };

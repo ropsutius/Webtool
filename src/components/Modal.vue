@@ -15,9 +15,8 @@
 <script>
 export default {
   methods: {
-    closeModal(event) {
-      event.target.parentElement.parentElement.parentElement.style.display =
-        'none';
+    closeModal() {
+      this.$emit('closeModal');
     },
   },
 };
@@ -25,7 +24,7 @@ export default {
 
 <style scoped>
 .modal {
-  display: none; /* Hidden by default */
+  display: block;
   position: fixed; /* Stay in place */
   z-index: 1; /* Sit on top */
   left: 0;
