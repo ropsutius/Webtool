@@ -1,17 +1,19 @@
 <script setup>
-import Navigationbar from "./components/Navigationbar.vue";
-import AppCanvas from "./components/AppCanvas.vue";
-import Sidebar from "./components/Sidebar.vue";
-import NewModal from "./components/NewModal.vue";
-import ImportModal from "./components/ImportModal.vue";
-import ExportModal from "./components/ExportModal.vue";
+import Navbar from './components/Navbar.vue';
+import AppCanvas from './components/AppCanvas.vue';
+import Sidebar from './components/Sidebar.vue';
+import NewForm from './components/NewForm.vue';
+import ImportForm from './components/ImportForm.vue';
+import ExportForm from './components/ExportForm.vue';
+import Modal from './components/Modal.vue';
 </script>
 
 <template>
-  <Navigationbar />
+  <Navbar />
   <AppCanvas />
   <Sidebar />
-  <NewModal />
-  <ImportModal />
-  <ExportModal />
+
+  <Modal id="new"> <NewForm /> </Modal>
+  <Modal id="import"> <ImportForm /> </Modal>
+  <Modal id="export"> <ExportForm /> </Modal>
 </template>

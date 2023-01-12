@@ -1,43 +1,29 @@
-<script setup>
-import { exportProject } from '../webtool/export';
-
-const props = defineProps({
-  id: String,
-});
-
-const closeExportModal = () => {
-  document.getElementById('export').style.display = 'none';
-};
-</script>
-
 <template>
-  <div id="export" class="modal download">
+  <div class="modal download">
     <div class="modal-content">
       <div class="modal-header">
-        <span class="close" @click="closeExportModal">&times;</span>
+        <span class="close" @click="closeModal">&times;</span>
         <h2>Export Project</h2>
       </div>
       <div class="modal-body">
-        <form @submit="exportProject">
-          <input type="text" />
-          <select id="cars">
-            <option value="png">.png</option>
-            <option value="tif">.tif</option>
-            <option value="txt">.txt</option>
-          </select>
-          <br />
-          <button type="submit" class="btn">Download</button>
-          <button type="button" class="btn" @click="closeExportModal">
-            Cancel
-          </button>
-        </form>
+        <slot></slot>
       </div>
     </div>
   </div>
 </template>
 
-<style>
-/* MODAL */
+<script>
+export default {
+  methods: {
+    closeModal(event) {
+      event.target.parentElement.parentElement.parentElement.style.display =
+        'none';
+    },
+  },
+};
+</script>
+
+<style scoped>
 .modal {
   display: none; /* Hidden by default */
   position: fixed; /* Stay in place */
@@ -111,47 +97,5 @@ const closeExportModal = () => {
     top: 0;
     opacity: 1;
   }
-}
-
-/* FORM */
-input[type='number'],
-input[type='text'],
-select,
-label,
-form button {
-  margin: 8px 16px;
-  font-size: 12px;
-}
-
-#new label {
-  margin-right: 2px;
-}
-
-.download label {
-  margin-left: 0px;
-}
-
-.download input[type='text'] {
-  margin-right: 2px;
-}
-
-input[type='number'] {
-  margin-left: 2px;
-}
-
-form button {
-  margin-top: 20px;
-  margin-right: 0px;
-  padding: 6px 10px;
-  border: none;
-  text-decoration: none;
-  color: white;
-  background-color: #303030;
-  cursor: pointer;
-}
-
-form button:hover,
-form button:focus {
-  cursor: pointer;
 }
 </style>

@@ -30,3 +30,5 @@ coverage
 
 # production
 /build
+
+*.code-workspace
